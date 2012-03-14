@@ -37,10 +37,6 @@
             <artifactId>com.idega.hibernate</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-commons-annotations</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.idega.block.platform</groupId>
             <artifactId>com.idega.springframework</artifactId>
         </dependency>
@@ -61,20 +57,28 @@
             <artifactId>com.idega.slide</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.idega.block.platform</groupId>
+            <artifactId>org.apache.axis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.idega.block.platform</groupId>
+            <artifactId>com.idega.block.process.webservice</artifactId>
+        </dependency>
+        
+        <!-- Addons -->
+        <dependency>
             <groupId>com.idega.block.addon</groupId>
             <artifactId>com.idega.block.email</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.idega.block.platform</groupId>
-            <artifactId>org.apache.axis</artifactId>
+        	<groupId>com.idega.block.addon</groupId>
+        	<artifactId>com.idega.xroad</artifactId>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>com.idega.block.platform</groupId>-->
-        <!--<artifactId>com.idega.block.process</artifactId>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>com.idega.block.platform</groupId>
-            <artifactId>com.idega.block.process.webservice</artifactId>
+        
+        <!-- Hibernate -->
+		<dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-commons-annotations</artifactId>
         </dependency>
 
         <!--
@@ -96,6 +100,14 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
             <version>1.13-b01</version>
+        </dependency>
+        
+        <!-- GSON from Google -->
+        <dependency>
+        	<groupId>com.google.code.gson</groupId>
+        	<artifactId>gson</artifactId>
+        	<version>2.1</version>
+        	<scope>compile</scope>
         </dependency>
     </dependencies>
 

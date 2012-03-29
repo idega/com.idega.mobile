@@ -49,13 +49,13 @@ public class WebserviceTest extends DefaultSpringBean {
 	@Path("/cases")
 	@Produces(MediaType.APPLICATION_JSON)
     public String getCasesList() {
+		Gson gson = new Gson();
     	CaseListResponseCaseListEntry[] cases = getCaseDataProvider().getCaseList();
     	if (ArrayUtil.isEmpty(cases)) {
     		getLogger().warning("No cases found");
-    		return null;
+    		return gson.toJson("Error");
     	}
 
-    	Gson gson = new Gson();
     	return gson.toJson(cases);
     }
 

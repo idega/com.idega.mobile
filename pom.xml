@@ -68,10 +68,7 @@
             <groupId>com.idega.block.platform</groupId>
             <artifactId>org.apache.axis</artifactId>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>com.idega.block.platform</groupId>-->
-        <!--<artifactId>com.idega.block.process</artifactId>-->
-        <!--</dependency>-->
+
         <dependency>
             <groupId>com.idega.block.platform</groupId>
             <artifactId>com.idega.block.process.webservice</artifactId>
@@ -96,6 +93,23 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
             <version>1.13-b01</version>
+        </dependency>
+
+        <!--
+            XML to JSON
+        -->
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>2.4</version>
+            <type>jar</type>
+            <classifier>jdk15</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>xom</groupId>
+            <artifactId>xom</artifactId>
+            <version>1.2.5</version>
         </dependency>
     </dependencies>
 

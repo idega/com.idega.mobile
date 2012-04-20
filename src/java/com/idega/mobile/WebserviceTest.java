@@ -1,11 +1,13 @@
 package com.idega.mobile;
 
+import java.util.logging.Level;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import net.x_rd.ee.municipality.producer.CaseListResponseCaseListEntry;
+import net.x_rd.ee.municipality.producer.MunicipalityserviceStub.CaseListEntry_type0;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -16,7 +18,7 @@ import com.google.gson.Gson;
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.util.ArrayUtil;
 import com.idega.util.expression.ELUtil;
-import com.idega.xroad.webservices.client.CaseDataProvider;
+import com.idega.xroad.business.CasesDataProvider;
 
 /**
  * Description
@@ -30,9 +32,9 @@ import com.idega.xroad.webservices.client.CaseDataProvider;
 public class WebserviceTest extends DefaultSpringBean {
 
 	@Autowired
-	private CaseDataProvider caseDataProvider;
+	private CasesDataProvider caseDataProvider;
 
-	CaseDataProvider getCaseDataProvider() {
+	CasesDataProvider getCaseDataProvider() {
 		if (caseDataProvider == null)
 			ELUtil.getInstance().autowire(this);
 		return caseDataProvider;
@@ -50,7 +52,12 @@ public class WebserviceTest extends DefaultSpringBean {
 	@Produces(MediaType.APPLICATION_JSON)
     public String getCasesList() {
 		Gson gson = new Gson();
-    	CaseListResponseCaseListEntry[] cases = getCaseDataProvider().getCaseList();
+		CaseListEntry_type0[] cases = null;
+		try {
+			cases = getCaseDataProvider().getCases();
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting test cases list", e);
+		}
     	if (ArrayUtil.isEmpty(cases)) {
     		getLogger().warning("No cases found");
     		return gson.toJson("Error");

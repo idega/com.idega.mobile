@@ -1,12 +1,17 @@
 package com.idega.mobile;
 
-import net.sf.json.JSON;
-import net.sf.json.xml.XMLSerializer;
+import java.util.logging.Logger;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.logging.Logger;
+
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
 
 /**
  * Description

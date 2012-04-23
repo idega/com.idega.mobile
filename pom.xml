@@ -95,20 +95,23 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>1.13-b01</version>
+            <version>${com.sun.jersey-version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
-            <version>1.13-b01</version>
+            <version>${com.sun.jersey-version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
-            <version>1.13-b01</version>
+            <version>${com.sun.jersey-version}</version>
         </dependency>
+        <dependency>
+		    <groupId>com.sun.jersey.contribs</groupId>
+		    <artifactId>jersey-multipart</artifactId>
+		    <version>${com.sun.jersey-version}</version>
+		</dependency>
 
         <!--
             XML to JSON
@@ -134,6 +137,13 @@
             <version>2.1</version>
             <scope>compile</scope>
         </dependency>
+        
+        <!-- Others -->
+        <dependency>
+	    	<groupId>javax.ws.rs</groupId>
+	    	<artifactId>jsr311-api</artifactId>
+	    	<version>${javax.ws.rs-version}</version>
+	    </dependency>
     </dependencies>
 
     <repositories>

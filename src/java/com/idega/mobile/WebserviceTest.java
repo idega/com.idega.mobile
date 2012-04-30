@@ -26,7 +26,7 @@ import com.idega.xroad.business.CasesDataProvider;
  * Date: 2012-03-14
  * Time: 09:33
  */
-@Path("/test")
+@Path("/mobile/test")
 @Service
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class WebserviceTest extends DefaultSpringBean {

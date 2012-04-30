@@ -1,6 +1,4 @@
-package com.idega.mobile;
-
-import java.util.logging.Logger;
+package com.idega.mobile.restful;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -13,6 +11,8 @@ import javax.ws.rs.core.Response;
 import net.sf.json.JSON;
 import net.sf.json.xml.XMLSerializer;
 
+import com.idega.core.business.DefaultSpringBean;
+
 /**
  * Description
  * User: Simon Sönnby
@@ -20,9 +20,7 @@ import net.sf.json.xml.XMLSerializer;
  * Time: 09:33
  */
 @Path("/*/")
-public class MobileWebservice {
-
-    private static Logger LOGGER = Logger.getLogger(MobileWebservice.class.getName());
+public class MobileWebservice extends DefaultSpringBean  {
 
     @GET
     @Path("/getJSON")

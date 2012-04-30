@@ -1,4 +1,4 @@
-package com.idega.mobile;
+package com.idega.mobile.restful;
 
 import java.util.logging.Level;
 
@@ -10,9 +10,6 @@ import javax.ws.rs.core.MediaType;
 import net.x_rd.ee.municipality.producer.MunicipalityserviceStub.CaseListEntry_type0;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 import com.idega.core.business.DefaultSpringBean;
@@ -27,8 +24,6 @@ import com.idega.xroad.business.CasesDataProvider;
  * Time: 09:33
  */
 @Path("/mobile/test")
-@Service
-@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class WebserviceTest extends DefaultSpringBean {
 
 	@Autowired

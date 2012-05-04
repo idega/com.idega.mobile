@@ -19,6 +19,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
     </servlet-mapping>
     
     <!-- Configuration for HTTPS protocol -->
+    <!--
     <security-constraint>
     	<web-resource-collection>
     		<web-resource-name>Securing all requests to ePlatform</web-resource-name>
@@ -36,6 +37,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
     		<transport-guarantee>CONFIDENTIAL</transport-guarantee>
     	</user-data-constraint>
     </security-constraint>
+    -->
     
     <filter>
 		<filter-name>Mobile REST Filter</filter-name>

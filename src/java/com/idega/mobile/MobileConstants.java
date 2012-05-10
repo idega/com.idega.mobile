@@ -6,6 +6,8 @@ public class MobileConstants {
 
 	public static final String	IW_BUNDLE_IDENTIFIER = "com.idega.mobile",
 								URI = "/mobile",
+								URI_LOGIN = "/login",
+								URI_LOGOUT = "/logout",
 								URI_GET_REPOSITORY_ITEM = "/repostory/item";
 
 }

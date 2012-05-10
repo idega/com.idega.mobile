@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.logging.Level;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,15 +15,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import net.sf.json.JSON;
-import net.sf.json.xml.XMLSerializer;
-
 import com.google.gson.Gson;
+import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.mobile.MobileConstants;
+import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
@@ -37,46 +38,58 @@ import com.idega.util.StringUtil;
 public class MobileWebservice extends DefaultSpringBean  {
 
     @GET
-    @Path("/getJSON")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getJSON() {
-        // https://localhost:8443/mobile/getJSON
-
-        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<simple-list>\n" +
-                "  <timestamp>232423423423</timestamp>\n" +
-                "  <authors>\n" +
-                "    <author>\n" +
-                "      <firstName>Tim</firstName>\n" +
-                "      <lastName>Leary</lastName>\n" +
-                "    </author>\n" +
-                "  </authors>\n" +
-                "  <title>Flashbacks</title>\n" +
-                "  <shippingWeight>1.4 pounds</shippingWeight>\n" +
-                "  <isbn>978-0874778700</isbn>\n" +
-                "</simple-list>";
-
-        XMLSerializer xmlSerializer = new XMLSerializer();
-        JSON json = xmlSerializer.read(xml);
-
-        return json.toString();
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public String index() {
-        // https://localhost:8443/mobile/
-        return "{\"test\":\"test\"}";
-    }
-
-    @GET
-    @Path("/login")
+    @Path(MobileConstants.URI_LOGIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(@QueryParam("username") String username, @QueryParam("password") String password) {
-        // https://localhost:8443/mobile/login?username=test&password=test
-        return username.equals("test") && password.equals("test") ?
-                Response.status(Response.Status.ACCEPTED).entity("Success").build() :
-                Response.status(Response.Status.UNAUTHORIZED).entity("Failed").build();
+        String message = null;
+    	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
+    		message = "User name or password is not provided";
+    		getLogger().warning(message);
+        	return getResponse(Response.Status.UNAUTHORIZED, message);
+    	}
+
+    	try {
+	    	IWContext iwc = CoreUtil.getIWContext();
+	    	HttpServletRequest request = iwc.getRequest();
+	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
+	    	if (login.isLoggedOn(request)) {
+	    		message = "User " + username + " is already logged in";
+	    		getLogger().info(message);
+	    		return getResponse(Response.Status.ACCEPTED, message);
+	    	}
+
+	    	boolean success = login.logInUser(request, username, password);
+	    	message = success ? "Success" : "Failed";
+	    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, message);
+    	} catch (Exception e) {
+    		message = "Error while trying to login user " + username;
+    		getLogger().log(Level.WARNING, message, e);
+    		return getResponse(Response.Status.UNAUTHORIZED, message);
+    	}
+    }
+
+    @GET
+    @Path(MobileConstants.URI_LOGOUT)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response logout(@QueryParam("username") String username) {
+    	String message = null;
+     	if (StringUtil.isEmpty(username)) {
+     		message = "User name is not provided";
+     		getLogger().warning(message);
+         	return getResponse(Response.Status.BAD_REQUEST, message);
+     	}
+
+     	try {
+     		IWContext iwc = CoreUtil.getIWContext();
+     		LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(iwc.getRequest());
+     		boolean success = login.logOutUser(iwc);
+     		message = success ? "Success" : "Failed";
+     		return getResponse(success ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR, message);
+     	} catch (Exception e) {
+     		message = "Error while logging out " + username;
+     		getLogger().log(Level.WARNING, message, e);
+     		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
+     	}
     }
 
     private Response getResponse(Response.Status status, Serializable message) {
@@ -116,6 +129,15 @@ public class MobileWebservice extends DefaultSpringBean  {
 		if (!pathInSlide.startsWith(CoreConstants.WEBDAV_SERVLET_URI))
 			pathInSlide = new StringBuilder(CoreConstants.WEBDAV_SERVLET_URI).append(pathInSlide).toString();
 
+		String fileName = pathInSlide;
+		int index = fileName.lastIndexOf(CoreConstants.SLASH);
+		if (index != -1)
+			fileName = pathInSlide.substring(index + 1);
+
+		File file = new File(fileName);
+		if (file.exists())
+			return file;
+
 		IWSlideService slide = getServiceInstance(IWSlideService.class);
 		if (slide == null)
 			return null;
@@ -128,15 +150,6 @@ public class MobileWebservice extends DefaultSpringBean  {
 		}
 		if (stream == null)
 			return null;
-
-		String fileName = pathInSlide;
-		int index = fileName.lastIndexOf(CoreConstants.SLASH);
-		if (index != -1)
-			fileName = pathInSlide.substring(index + 1);
-
-		File file = new File(fileName);
-		if (file.exists())
-			return file;
 
 		try {
 			FileUtil.streamToFile(stream, file);

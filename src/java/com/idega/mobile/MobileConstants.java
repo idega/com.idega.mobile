@@ -4,6 +4,8 @@ public class MobileConstants {
 
 	private MobileConstants() {}
 
-	public static final String IW_BUNDLE_IDENTIFIER = "com.idega.mobile";
+	public static final String	IW_BUNDLE_IDENTIFIER = "com.idega.mobile",
+								URI = "/mobile",
+								URI_GET_REPOSITORY_ITEM = "/repostory/item";
 
 }

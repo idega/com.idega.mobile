@@ -2,7 +2,6 @@ package com.idega.mobile.restful;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,11 +12,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.google.gson.Gson;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
-import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.mobile.MobileConstants;
 import com.idega.presentation.IWContext;
@@ -35,7 +31,7 @@ import com.idega.util.StringUtil;
  * Time: 09:33
  */
 @Path(MobileConstants.URI)
-public class MobileWebservice extends DefaultSpringBean  {
+public class MobileWebservice extends DefaultRestfulService  {
 
     @GET
     @Path(MobileConstants.URI_LOGIN)
@@ -92,17 +88,6 @@ public class MobileWebservice extends DefaultSpringBean  {
      	}
     }
 
-    private Response getResponse(Response.Status status, Serializable message) {
-		ResponseBuilder responseBuilder = Response.status(status.getStatusCode());
-		Response response = responseBuilder.entity(getJSON(message)).build();
-		return response;
-	}
-
-    private String getJSON(Serializable object) {
-		Gson gson = new Gson();
-		return gson.toJson(object);
-	}
-
     @GET
 	@Path(MobileConstants.URI_GET_REPOSITORY_ITEM)
 	@Produces("*/*")
@@ -114,6 +99,7 @@ public class MobileWebservice extends DefaultSpringBean  {
 			return getResponse(Response.Status.BAD_REQUEST, errorMessage);
 		}
 
+		//	TODO: improve this!
 		File attachment = getResource(url);
 		if (attachment == null || !attachment.exists()) {
 			errorMessage = "Attachment " + attachment + " is not defined or does not exist";

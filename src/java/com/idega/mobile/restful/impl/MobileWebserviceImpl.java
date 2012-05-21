@@ -1,4 +1,4 @@
-package com.idega.mobile.restful;
+package com.idega.mobile.restful.impl;
 
 import java.io.File;
 import java.io.InputStream;
@@ -16,6 +16,8 @@ import javax.ws.rs.core.Response;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.mobile.MobileConstants;
+import com.idega.mobile.restful.DefaultRestfulService;
+import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
@@ -31,12 +33,12 @@ import com.idega.util.StringUtil;
  * Time: 09:33
  */
 @Path(MobileConstants.URI)
-public class MobileWebservice extends DefaultRestfulService  {
+public class MobileWebserviceImpl extends DefaultRestfulService implements MobileWebservice {
 
     @GET
     @Path(MobileConstants.URI_LOGIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(@QueryParam("username") String username, @QueryParam("password") String password) {
+    public Response doLogin(@QueryParam("username") String username, @QueryParam("password") String password) {
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
     		message = "User name or password is not provided";
@@ -67,7 +69,7 @@ public class MobileWebservice extends DefaultRestfulService  {
     @GET
     @Path(MobileConstants.URI_LOGOUT)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response logout(@QueryParam("username") String username) {
+    public Response doLogout(@QueryParam("username") String username) {
     	String message = null;
      	if (StringUtil.isEmpty(username)) {
      		message = "User name is not provided";

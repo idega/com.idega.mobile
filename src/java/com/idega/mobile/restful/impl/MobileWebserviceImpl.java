@@ -17,9 +17,11 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
+import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
+import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
@@ -51,28 +53,48 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
     		message = "User name or password is not provided";
     		getLogger().warning(message);
-        	return getResponse(Response.Status.UNAUTHORIZED, message);
+        	return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(false));
     	}
 
     	try {
 	    	IWContext iwc = CoreUtil.getIWContext();
 	    	HttpServletRequest request = iwc.getRequest();
 	    	HttpSession session = request.getSession();
+
+	    	String userId = getUserIdByLogin(username);
+	    	if (StringUtil.isEmpty(userId))
+	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
+
 	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
+	    	String sessionId = session.getId();
 	    	if (login.isLoggedOn(request)) {
 	    		message = "User " + username + " is already logged in";
 	    		getLogger().info(message);
-	    		return getResponse(Response.Status.ACCEPTED, message);
+	    		return getResponse(Response.Status.ACCEPTED, new LoginResult(Boolean.TRUE, sessionId, userId));
 	    	}
 
 	    	boolean success = login.logInUser(request, username, password);
-	    	message = success ? session.getId() : "Failed";
-	    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, message);
+	    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, new LoginResult(success, success ? sessionId : null,
+	    			success ? userId : null));
     	} catch (Exception e) {
     		message = "Error while trying to login user " + username;
     		getLogger().log(Level.WARNING, message, e);
-    		return getResponse(Response.Status.UNAUTHORIZED, message);
+    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     	}
+    }
+
+    private String getUserIdByLogin(String username) {
+    	if (StringUtil.isEmpty(username))
+    		return null;
+
+    	Integer id = null;
+    	try {
+    		id = LoginDBHandler.getUserLoginByUserName(username).getUserId();
+    	} catch (Exception e) {
+    		getLogger().warning("User ID can not be found for provided user name: " + username);
+    	}
+
+    	return id == null ? null : String.valueOf(id);
     }
 
     @GET

@@ -2,6 +2,8 @@ package com.idega.mobile.restful;
 
 import javax.ws.rs.core.Response;
 
+import com.idega.mobile.bean.LoginResult;
+
 public interface MobileWebservice {
 
 	/**
@@ -9,7 +11,7 @@ public interface MobileWebservice {
 	 *
 	 * @param username
 	 * @param password
-	 * @return HTTP session ID on successful login or failure message
+	 * @return Response to the request ({@link LoginResult}) about the attempt to login
 	 */
 	public Response doLogin(String username, String password);
 

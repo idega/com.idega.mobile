@@ -171,7 +171,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	public Response doPing(@QueryParam("JSESSIONID") String httpSessionId) {
 		String message = null;
 		if (StringUtil.isEmpty(httpSessionId)) {
-			message = "HTTP session ID is not provided. It should be provided by parameter 'JSESSIONID'";
+			message = "HTTP session ID is not provided. It should be provided by parameter JSESSIONID";
 			getLogger().warning(message);
 			return getResponse(Response.Status.BAD_REQUEST, message);
 		}
@@ -182,8 +182,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			if (getSessionsManager().isSessionValid(httpSessionId) && httpSessionId.equals(sessionIdFromRequest))
 				return getResponse(Response.Status.OK, "Session is valid");
 
-			message = "Session by ID '" + httpSessionId + "' is not valid: probably it has expired or is not the same as expected. " +
-					"Expected session ID: '" + sessionIdFromRequest + "', got: '" + httpSessionId + "'";
+			message = "Session by ID " + httpSessionId + " is not valid: probably it has expired or is not the same as expected. " +
+					"Expected session ID: " + sessionIdFromRequest + ", got: " + httpSessionId;
 			getLogger().warning(message);
 			return getResponse(Response.Status.NOT_FOUND, message);
 		} catch (Exception e) {

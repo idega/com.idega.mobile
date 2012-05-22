@@ -9,7 +9,7 @@ public interface MobileWebservice {
 	 *
 	 * @param username
 	 * @param password
-	 * @return
+	 * @return HTTP session ID on successful login or failure message
 	 */
 	public Response doLogin(String username, String password);
 

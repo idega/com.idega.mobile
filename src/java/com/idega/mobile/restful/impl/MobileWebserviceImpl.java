@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -49,6 +50,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	try {
 	    	IWContext iwc = CoreUtil.getIWContext();
 	    	HttpServletRequest request = iwc.getRequest();
+	    	HttpSession session = request.getSession();
 	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
 	    	if (login.isLoggedOn(request)) {
 	    		message = "User " + username + " is already logged in";
@@ -57,7 +59,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	    	}
 
 	    	boolean success = login.logInUser(request, username, password);
-	    	message = success ? "Success" : "Failed";
+	    	message = success ? session.getId() : "Failed";
 	    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, message);
     	} catch (Exception e) {
     		message = "Error while trying to login user " + username;

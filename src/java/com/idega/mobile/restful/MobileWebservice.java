@@ -21,4 +21,11 @@ public interface MobileWebservice {
 	 */
 	public Response doLogout(String username);
 
+	/**
+	 *  Pings HTTP session
+	 *
+	 * @return
+	 */
+	public Response doPing(String httpSessionId);
+
 }

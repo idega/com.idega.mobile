@@ -14,8 +14,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.file.util.MimeTypeUtil;
+import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
@@ -26,6 +29,7 @@ import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * Description
@@ -35,6 +39,9 @@ import com.idega.util.StringUtil;
  */
 @Path(MobileConstants.URI)
 public class MobileWebserviceImpl extends DefaultRestfulService implements MobileWebservice {
+
+	@Autowired
+	private IWHttpSessionsManager httpSessionsManager;
 
     @GET
     @Path(MobileConstants.URI_LOGIN)
@@ -151,4 +158,39 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 		return file;
 	}
+
+	private IWHttpSessionsManager getSessionsManager() {
+		if (httpSessionsManager == null)
+			ELUtil.getInstance().autowire(this);
+		return httpSessionsManager;
+	}
+
+	@GET
+	@Path(MobileConstants.URI_PING)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response doPing(@QueryParam("JSESSIONID") String httpSessionId) {
+		String message = null;
+		if (StringUtil.isEmpty(httpSessionId)) {
+			message = "HTTP session ID is not provided. It should be provided by parameter 'JSESSIONID'";
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+
+		try {
+			HttpSession session = CoreUtil.getIWContext().getRequest().getSession(false);
+			String sessionIdFromRequest = session == null ? CoreConstants.EMPTY : session.getId();
+			if (getSessionsManager().isSessionValid(httpSessionId) && httpSessionId.equals(sessionIdFromRequest))
+				return getResponse(Response.Status.OK, "Session is valid");
+
+			message = "Session by ID '" + httpSessionId + "' is not valid: probably it has expired or is not the same as expected. " +
+					"Expected session ID: '" + sessionIdFromRequest + "', got: '" + httpSessionId + "'";
+			getLogger().warning(message);
+			return getResponse(Response.Status.NOT_FOUND, message);
+		} catch (Exception e) {
+			message = "Error pinging session by ID: " + httpSessionId;
+			getLogger().log(Level.WARNING, message, e);
+		}
+		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
+	}
+
 }

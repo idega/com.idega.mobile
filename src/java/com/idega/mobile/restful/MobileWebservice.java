@@ -22,7 +22,7 @@ public interface MobileWebservice {
 	public Response doLogout(String username);
 
 	/**
-	 *  Pings HTTP session
+	 *  Pings HTTP session. GET: /mobile/ping?JSESSIONID=...
 	 *
 	 * @return
 	 */

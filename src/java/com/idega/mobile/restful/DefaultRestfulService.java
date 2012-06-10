@@ -7,6 +7,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.google.gson.Gson;
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.user.business.UserBusiness;
+import com.idega.user.data.User;
+import com.idega.util.StringUtil;
 
 public abstract class DefaultRestfulService extends DefaultSpringBean {
 
@@ -19,6 +22,28 @@ public abstract class DefaultRestfulService extends DefaultSpringBean {
     protected String getJSON(Serializable object) {
 		Gson gson = new Gson();
 		return gson.toJson(object);
+	}
+
+    protected User getUser(String userId) {
+    	if (StringUtil.isEmpty(userId))
+    		return null;
+
+    	User user = null;
+    	UserBusiness userBusiness = getServiceInstance(UserBusiness.class);
+    	try {
+			user = userBusiness.getUser(userId);
+		} catch (Exception e) {}
+
+    	if (user == null) {
+    		try {
+    			user = userBusiness.getUser(Integer.valueOf(userId));
+    		} catch (Exception e) {}
+    	}
+
+    	if (user == null)
+    		getLogger().warning("Error getting user by ID: " + userId);
+
+    	return user;
 	}
 
 }

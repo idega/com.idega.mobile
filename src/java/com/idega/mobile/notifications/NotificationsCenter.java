@@ -118,4 +118,13 @@ public class NotificationsCenter extends DefaultSpringBean {
 		return true;
 	}
 
+	public boolean isSubscribed(Integer userId, String token, String objectId) {
+		try {
+			return mobileDAO.getNotificationSubscription(userId, token, objectId) != null;
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error verifying whether user (ID: " + userId + ") is subscribed to " + objectId + " by token " + token, e);
+		}
+		return false;
+	}
+
 }

@@ -25,7 +25,6 @@ import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
-import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
@@ -45,7 +44,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Autowired
 	private IWHttpSessionsManager httpSessionsManager;
 
-    @GET
+    @Override
+	@GET
     @Path(MobileConstants.URI_LOGIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doLogin(@QueryParam("username") String username, @QueryParam("password") String password) {
@@ -97,7 +97,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	return id == null ? null : String.valueOf(id);
     }
 
-    @GET
+    @Override
+	@GET
     @Path(MobileConstants.URI_LOGOUT)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doLogout(@QueryParam("username") String username) {
@@ -144,28 +145,24 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return Response.ok(attachment, mimeType).build();
 	}
 
-	private File getResource(String pathInSlide) {
-		if (!pathInSlide.startsWith(CoreConstants.WEBDAV_SERVLET_URI))
-			pathInSlide = new StringBuilder(CoreConstants.WEBDAV_SERVLET_URI).append(pathInSlide).toString();
+	private File getResource(String pathInRepository) {
+		if (!pathInRepository.startsWith(CoreConstants.WEBDAV_SERVLET_URI))
+			pathInRepository = new StringBuilder(CoreConstants.WEBDAV_SERVLET_URI).append(pathInRepository).toString();
 
-		String fileName = pathInSlide;
+		String fileName = pathInRepository;
 		int index = fileName.lastIndexOf(CoreConstants.SLASH);
 		if (index != -1)
-			fileName = pathInSlide.substring(index + 1);
+			fileName = pathInRepository.substring(index + 1);
 
 		File file = new File(fileName);
 		if (file.exists())
 			return file;
 
-		IWSlideService slide = getServiceInstance(IWSlideService.class);
-		if (slide == null)
-			return null;
-
 		InputStream stream = null;
 		try {
-			stream = slide.getInputStream(pathInSlide);
+			stream = getRepositoryService().getInputStreamAsRoot(pathInRepository);
 		} catch(Exception e) {
-			getLogger().log(Level.SEVERE, "Error getting InputStream for: " + pathInSlide, e);
+			getLogger().log(Level.SEVERE, "Error getting InputStream for: " + pathInRepository, e);
 		}
 		if (stream == null)
 			return null;
@@ -173,7 +170,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		try {
 			FileUtil.streamToFile(stream, file);
 		} catch(Exception e) {
-			getLogger().log(Level.SEVERE, "Error streaming from " + pathInSlide + " to file: " + file.getName(), e);
+			getLogger().log(Level.SEVERE, "Error streaming from " + pathInRepository + " to file: " + file.getName(), e);
 		} finally {
 			IOUtil.closeInputStream(stream);
 		}
@@ -187,6 +184,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return httpSessionsManager;
 	}
 
+	@Override
 	@GET
 	@Path(MobileConstants.URI_PING)
 	@Produces(MediaType.APPLICATION_JSON)

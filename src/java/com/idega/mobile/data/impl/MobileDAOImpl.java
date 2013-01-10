@@ -12,6 +12,7 @@ import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
+import com.idega.util.StringUtil;
 
 @Repository
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -36,6 +37,12 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 
 	@Override
 	public NotificationSubscription getNotificationSubscription(Integer userId, String token, String objectId) {
+		if (userId == null || StringUtil.isEmpty(token) || StringUtil.isEmpty(objectId)) {
+			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", token: " + token + ", object ID" +
+					objectId);
+			return null;
+		}
+
 		return getSingleResultByInlineQuery("select s from " + NotificationSubscription.class.getName() +
 				" s where s.userId = :userId and s.token = :tokenId and s.subscribedOn = :notifyOn",
 				NotificationSubscription.class,

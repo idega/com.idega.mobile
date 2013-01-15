@@ -38,7 +38,7 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 	@Override
 	public NotificationSubscription getNotificationSubscription(Integer userId, String token, String objectId) {
 		if (userId == null || StringUtil.isEmpty(token) || StringUtil.isEmpty(objectId)) {
-			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", token: " + token + ", object ID" +
+			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", token: " + token + ", object ID: " +
 					objectId);
 			return null;
 		}

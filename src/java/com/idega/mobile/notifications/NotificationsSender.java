@@ -11,4 +11,7 @@ public interface NotificationsSender {
 
 	public String getSupportedDeviceType();
 
+	public String getKeyStore();
+
+	public String getPassword();
 }

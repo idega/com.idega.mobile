@@ -1,15 +1,6 @@
 package com.idega.mobile.notifications.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +21,7 @@ import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsSender;
-import com.idega.util.IOUtil;
+import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.LocaleUtil;
 import com.idega.util.StringUtil;
@@ -39,102 +30,6 @@ import com.idega.util.datastructures.map.MapUtil;
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class AppleNotificationsSender extends DefaultSpringBean implements NotificationsSender {
-
-	private KeyStore keyStore;
-
-	private Map<String, X509Certificate> certificatesCache = new HashMap<String, X509Certificate>();
-
-	private String getPassword() {
-		return "sdslj356fdgopewrdf4xgmfdngr";
-	}
-
-	private KeyStore getKeyStore() {
-		if (keyStore != null)
-			return keyStore;
-
-		String alias = "munizapp";
-
-		X509Certificate certificate = getCertificate(alias, getPassword());
-		if (certificate == null) {
-			return null;
-		}
-
-		try {
-			File f = new File(alias.concat(MobileConstants.CERTIFICATE_FILE_ENDING));
-			if (!f.exists())
-				f.createNewFile();
-
-			InputStream streamToStoreFile = new FileInputStream(f);
-			keyStore = initializeKeyStore(streamToStoreFile, getPassword());
-			return keyStore;
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error loading key store for: " + alias, e);
-		}
-
-		return null;
-	}
-
-	private KeyStore initializeKeyStore(InputStream streamToStoreFile, String password) {
-		KeyStore store = null;
-		try {
-			store = KeyStore.getInstance(MobileConstants.SECURITY_TYPE, MobileConstants.SECURITY_PROVIDER_BOUNCY_CASTLE);
-		} catch (KeyStoreException e) {
-			getLogger().log(Level.SEVERE, "Error initiating KeyStore!", e);
-		} catch (NoSuchProviderException e) {
-			getLogger().log(Level.SEVERE, "There is no such provider: " + MobileConstants.SECURITY_PROVIDER_BOUNCY_CASTLE, e);
-		}
-
-		if (store == null) {
-			return null;
-		}
-
-		try {
-			store.load(streamToStoreFile, StringUtil.isEmpty(password) ? null : password.toCharArray());
-		} catch (NoSuchAlgorithmException e) {
-			getLogger().log(Level.SEVERE, "There is no such algorithm: " + MobileConstants.SECURITY_ALGORITHM_RSA, e);
-			return null;
-		} catch (CertificateException e) {
-			getLogger().log(Level.SEVERE, "There was a problem with certificate", e);
-			return null;
-		} catch (IOException e) {
-			getLogger().log(Level.SEVERE, "There was an error while loading key store", e);
-			return null;
-		} finally {
-			IOUtil.close(streamToStoreFile);
-		}
-
-		return store;
-	}
-
-	private X509Certificate getCertificate(String alias, String password) {
-		if (StringUtil.isEmpty(alias)) {
-			getLogger().warning("Invalid alias for certificate!");
-			return null;
-		}
-
-		X509Certificate peerCertificate = certificatesCache.get(alias);
-		if (peerCertificate != null)
-			return peerCertificate;
-
-		peerCertificate = getInitializedCertificate(alias, password);
-		if (peerCertificate != null)
-			certificatesCache.put(alias, peerCertificate);
-
-		return peerCertificate;
-	}
-
-	private X509Certificate getInitializedCertificate(String alias, String password) {
-		X509Certificate certificate = new sun.security.x509.X509CertImpl();
-		return certificate;
-//		if (CERTIFICATE_AUTHORITY == null) {
-//			try {
-//				CERTIFICATE_AUTHORITY = CAToolImpl.getCATool(alias, StringUtil.isEmpty(password) ? Constants.EMPTY.toCharArray() : password.toCharArray());
-//			} catch (Exception e) {
-//				LOGGER.log(Level.SEVERE, "There was an error while loading Certificate Authority", e);
-//			}
-//		}
-//		return CERTIFICATE_AUTHORITY;
-	}
 
 	@Override
 	public boolean doSendNotification(Notification notification, List<NotificationSubscription> subscriptions) {
@@ -178,19 +73,39 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 			if (ListUtil.isEmpty(devices))
 				continue;
 
-			try {
-				KeyStore keyStore = getKeyStore();
-				if (keyStore == null) {
-					getLogger().warning("Invalid key store");
-					return false;
-				}
+			boolean production = getApplication().getSettings().getBoolean("ios_push_production", Boolean.FALSE);
+			String keyStore = getKeyStore();
+			if (StringUtil.isEmpty(keyStore)) {
+				getLogger().warning("Invalid path to keystore");
+				return false;
+			}
+			File tmp = new File(keyStore);
+			if (!tmp.exists()) {
+				getLogger().warning("Keystore at " + keyStore + " does not exist");
+				return false;
+			}
+			String password = getPassword();
+			if (StringUtil.isEmpty(password)) {
+				getLogger().warning("Password for keystore is invalid");
+				return false;
+			}
 
-				Push.alert(message, keyStore, getPassword(), false, devices);
+			try {
+				Push.alert(message, keyStore, password, production, devices);
 			} catch (CommunicationException e) {
-				getLogger().log(Level.WARNING, "Error sending message '" + message + "' to devices " + devices, e);
+				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
+				getLogger().log(Level.WARNING, errorMessage, e);
+				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
 			} catch (KeystoreException e) {
-				getLogger().log(Level.WARNING, "Error while trying to intercept with keystore", e);
+				String errorMessage = "Error while trying to intercept with keystore at " + keyStore;
+				getLogger().log(Level.WARNING, errorMessage, e);
+				CoreUtil.sendExceptionNotification(errorMessage, e);
+				return false;
+			} catch (Exception e) {
+				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
+				getLogger().log(Level.WARNING, errorMessage, e);
+				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
 			}
 		}
@@ -201,6 +116,16 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 	@Override
 	public String getSupportedDeviceType() {
 		return MobileConstants.DEVICE_IOS;
+	}
+
+	@Override
+	public String getKeyStore() {
+		return getApplication().getSettings().getProperty("ios_keystore");
+	}
+
+	@Override
+	public String getPassword() {
+		return getApplication().getSettings().getProperty("ios_keystore_psw");
 	}
 
 }

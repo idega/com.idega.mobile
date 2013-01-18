@@ -144,12 +144,19 @@
 			<version>2.2</version>
 		</dependency>
         
-        <!-- Others -->
+        <!-- Java RESTful Web Services -->
         <dependency>
 	    	<groupId>javax.ws.rs</groupId>
 	    	<artifactId>jsr311-api</artifactId>
 	    	<version>${javax.ws.rs-version}</version>
 	    </dependency>
+	    
+	    <!-- Bouncy castle -->
+	    <dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk16</artifactId>
+			<version>1.46</version>
+		</dependency>
     </dependencies>
 
     <repositories>

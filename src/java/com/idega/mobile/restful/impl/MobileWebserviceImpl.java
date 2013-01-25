@@ -271,7 +271,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			locale = Locale.ENGLISH.toString();
 		}
 		if (StringUtil.isEmpty(objectId)) {
-			objectId = "issue_in_municipality";//getApplication().getSettings().getProperty("default_notification_object");
+			objectId = getApplication().getSettings().getProperty("default_notification_object");
 			if (StringUtil.isEmpty(objectId)) {
 				msg = "Object ID is not provided";
 				getLogger().warning(msg);

@@ -11,13 +11,13 @@ public class MobileConstants {
 								URI_LOGOUT = "/logout",
 								URI_PING = "/ping",
 								URI_GET_REPOSITORY_ITEM = "/repostory/item",
+								URI_NOTIFICATION = "/notification",
 
 								DEVICE_IOS = "iOS",
 								DEVIDE_ANDROID = "android",
 
-								CERTIFICATE_FILE_ENDING = "-store",
-								SECURITY_TYPE = "UBER",
-								SECURITY_PROVIDER_BOUNCY_CASTLE = "BC",
-								SECURITY_ALGORITHM_RSA = "RSA";
-
+								PARAM_TOKEN = "token",
+								PARAM_MSG = "msg",
+								PARAM_LOCALE = "locale",
+								PARAM_OBJECT_ID = "objectId";
 }

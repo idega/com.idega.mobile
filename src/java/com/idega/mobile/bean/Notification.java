@@ -4,11 +4,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.idega.mobile.data.NotificationSubscription;
+
 public class Notification {
 
 	private List<Integer> exclusions;
+
 	private Map<Locale, String> messages;
+
 	private String notifyOn;
+
+	private List<NotificationSubscription> subscriptions;
+
+	public Notification(Map<Locale, String> messages, List<NotificationSubscription> subscriptions) {
+		super();
+
+		this.messages = messages;
+		this.subscriptions = subscriptions;
+	}
 
 	public Notification(Map<Locale, String> messages, String notifyOn) {
 		super();
@@ -45,6 +58,14 @@ public class Notification {
 
 	public void setNotifyOn(String notifyOn) {
 		this.notifyOn = notifyOn;
+	}
+
+	public List<NotificationSubscription> getSubscriptions() {
+		return subscriptions;
+	}
+
+	public void setSubscriptions(List<NotificationSubscription> subscriptions) {
+		this.subscriptions = subscriptions;
 	}
 
 	@Override

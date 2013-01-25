@@ -54,6 +54,10 @@ public class NotificationsCenter extends DefaultSpringBean {
 		if (ListUtil.isEmpty(subscriptions))
 			return Collections.emptyMap();
 
+		return getSubscriptions(subscriptions);
+	}
+
+	private Map<String, List<NotificationSubscription>> getSubscriptions(List<NotificationSubscription> subscriptions) {
 		Map<String, List<NotificationSubscription>> groupedSubscriptions = new HashMap<String, List<NotificationSubscription>>();
 		for (NotificationSubscription subscription: subscriptions) {
 			String device = subscription.getDevice();
@@ -97,7 +101,9 @@ public class NotificationsCenter extends DefaultSpringBean {
 			return false;
 		}
 
-		Map<String, List<NotificationSubscription>> subscriptions = getSubscriptions(notification.getNotifyOn(), notification.getExclusions());
+		Map<String, List<NotificationSubscription>> subscriptions = ListUtil.isEmpty(notification.getSubscriptions()) ?
+				getSubscriptions(notification.getNotifyOn(), notification.getExclusions()) :
+				getSubscriptions(notification.getSubscriptions());
 		if (MapUtil.isEmpty(subscriptions)) {
 			getLogger().warning("No devices subscribed for " + notification);
 			return false;

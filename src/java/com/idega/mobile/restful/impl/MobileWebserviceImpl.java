@@ -2,6 +2,11 @@ package com.idega.mobile.restful.impl;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,9 +24,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;
+import com.idega.core.localisation.business.ICLocaleBusiness;
 import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
+import com.idega.mobile.bean.Notification;
+import com.idega.mobile.data.MobileDAO;
+import com.idega.mobile.data.NotificationSubscription;
+import com.idega.mobile.notifications.NotificationsCenter;
 import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
@@ -29,6 +39,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.FileUtil;
 import com.idega.util.IOUtil;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
@@ -44,11 +55,20 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Autowired
 	private IWHttpSessionsManager httpSessionsManager;
 
+	@Autowired
+	private MobileDAO mobileDAO;
+
+	@Autowired
+	private NotificationsCenter notificationsCenter;
+
     @Override
 	@GET
     @Path(MobileConstants.URI_LOGIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response doLogin(@QueryParam("username") String username, @QueryParam("password") String password) {
+    public Response doLogin(
+    		@QueryParam("username") String username,
+    		@QueryParam("password") String password
+    ) {
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
     		message = "User name or password is not provided";
@@ -212,5 +232,68 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		}
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
+
+	private MobileDAO getMobileDAO() {
+		if (mobileDAO == null)
+			ELUtil.getInstance().autowire(this);
+		return mobileDAO;
+	}
+
+	private NotificationsCenter getNotificationsCenter() {
+		if (notificationsCenter == null)
+			ELUtil.getInstance().autowire(this);
+		return notificationsCenter;
+	}
+
+	@Override
+	@GET
+	@Path(MobileConstants.URI_NOTIFICATION)
+	@Produces("*/*")
+	public Response doSendNotification(
+			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
+			@QueryParam(MobileConstants.PARAM_MSG) String message,
+			@QueryParam(MobileConstants.PARAM_LOCALE) String locale,
+			@QueryParam(MobileConstants.PARAM_OBJECT_ID) String objectId
+	) {
+		String msg = null;
+		if (StringUtil.isEmpty(token)) {
+			msg = "Token is not provided";
+			getLogger().warning(msg);
+			return getResponse(Response.Status.BAD_REQUEST, msg);
+		}
+		if (StringUtil.isEmpty(message)) {
+			msg = "Message is not provided";
+			getLogger().warning(msg);
+			return getResponse(Response.Status.BAD_REQUEST, msg);
+		}
+		if (StringUtil.isEmpty(locale)) {
+			getLogger().warning("Locale is not provided, using " + Locale.ENGLISH);
+			locale = Locale.ENGLISH.toString();
+		}
+		if (StringUtil.isEmpty(objectId)) {
+			objectId = "issue_in_municipality";//getApplication().getSettings().getProperty("default_notification_object");
+			if (StringUtil.isEmpty(objectId)) {
+				msg = "Object ID is not provided";
+				getLogger().warning(msg);
+				return getResponse(Response.Status.BAD_REQUEST, msg);
+			}
+		}
+
+		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(token), objectId);
+		if (ListUtil.isEmpty(subscriptions)) {
+			msg = "There are no subscriptions by token " + token;
+			getLogger().warning(msg);
+			return getResponse(Response.Status.BAD_REQUEST, msg);
+		}
+
+		Map<Locale, String> messages = new HashMap<Locale, String>();
+		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(locale), message);
+		Notification notification = new Notification(messages, subscriptions);
+		if (getNotificationsCenter().doSendNotification(notification))
+			return getResponse(Response.Status.OK, token);
+
+		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + message + ") to token " + token);
+	}
+
 
 }

@@ -12,6 +12,7 @@ import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 
 @Repository
@@ -84,6 +85,19 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 		remove(subscription);
 
 		return true;
+	}
+
+	@Override
+	public List<NotificationSubscription> getSubscriptions(List<String> tokens, String objectId) {
+		if (ListUtil.isEmpty(tokens) || StringUtil.isEmpty(objectId))
+			return null;
+
+		return getResultListByInlineQuery("from " + NotificationSubscription.class.getName() + " s where s.subscribedOn = :object_id and s." +
+				NotificationSubscription.tokenColumn + " in (:tokens)",
+				NotificationSubscription.class,
+				new Param("object_id", objectId),
+				new Param("tokens", tokens)
+		);
 	}
 
 }

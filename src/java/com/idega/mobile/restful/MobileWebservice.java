@@ -30,4 +30,14 @@ public interface MobileWebservice {
 	 */
 	public Response doPing(String httpSessionId);
 
+	/**
+	 * Sends push notification. GET: /mobile/notification?token=...
+	 *
+	 * @param token
+	 * @param message
+	 * @param locale
+	 * @param objectId
+	 * @return
+	 */
+	public Response doSendNotification(String token, String message, String locale, String objectId);
 }

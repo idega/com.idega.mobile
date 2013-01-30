@@ -10,7 +10,7 @@ public class MobileConstants {
 								URI_LOGIN = "/login",
 								URI_LOGOUT = "/logout",
 								URI_PING = "/ping",
-								URI_GET_REPOSITORY_ITEM = "/repostory/item",
+								URI_GET_REPOSITORY_ITEM = "/repository/item",
 								URI_NOTIFICATION = "/notification",
 
 								DEVICE_IOS = "iOS",
@@ -19,5 +19,6 @@ public class MobileConstants {
 								PARAM_TOKEN = "token",
 								PARAM_MSG = "msg",
 								PARAM_LOCALE = "locale",
-								PARAM_OBJECT_ID = "objectId";
+								PARAM_OBJECT_ID = "objectId",
+								PARAM_URL = "url";
 }

@@ -1,6 +1,7 @@
 package com.idega.mobile.restful.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
@@ -37,8 +39,6 @@ import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
-import com.idega.util.FileUtil;
-import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -145,7 +145,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     @GET
 	@Path(MobileConstants.URI_GET_REPOSITORY_ITEM)
 	@Produces("*/*")
-	public Response getImage(@QueryParam("url") String url) {
+	public Response getFile(@QueryParam(MobileConstants.PARAM_URL) String url) {
 		String errorMessage = null;
 		if (StringUtil.isEmpty(url)) {
 			errorMessage = "URL is not provided";
@@ -153,49 +153,43 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			return getResponse(Response.Status.BAD_REQUEST, errorMessage);
 		}
 
-		//	TODO: improve this!
-		File attachment = getResource(url);
-		if (attachment == null || !attachment.exists()) {
-			errorMessage = "Attachment " + attachment + " is not defined or does not exist";
+		InputStream stream = null;
+		try {
+			stream = getStream(url);
+		} catch (Exception e) {
+			errorMessage = "Error getting attachment at " + url;
+			getLogger().log(Level.WARNING, errorMessage, e);
+			return getResponse(Response.Status.INTERNAL_SERVER_ERROR, errorMessage);
+		}
+		if (stream == null) {
+			errorMessage = "Attachment at " + url + " is not defined or does not exist";
 			getLogger().warning(errorMessage);
 			return getResponse(Response.Status.INTERNAL_SERVER_ERROR, errorMessage);
 		}
 
-		String mimeType = MimeTypeUtil.resolveMimeTypeFromFileName(attachment.getName());
-		return Response.ok(attachment, mimeType).build();
+		String name = url.substring(url.lastIndexOf(File.separator) + 1);
+		String mimeType = MimeTypeUtil.resolveMimeTypeFromFileName(name);
+		return Response.ok(stream, mimeType).build();
 	}
 
-	private File getResource(String pathInRepository) {
-		if (!pathInRepository.startsWith(CoreConstants.WEBDAV_SERVLET_URI))
-			pathInRepository = new StringBuilder(CoreConstants.WEBDAV_SERVLET_URI).append(pathInRepository).toString();
-
-		String fileName = pathInRepository;
-		int index = fileName.lastIndexOf(CoreConstants.SLASH);
-		if (index != -1)
-			fileName = pathInRepository.substring(index + 1);
-
-		File file = new File(fileName);
-		if (file.exists())
-			return file;
-
-		InputStream stream = null;
-		try {
-			stream = getRepositoryService().getInputStreamAsRoot(pathInRepository);
-		} catch(Exception e) {
-			getLogger().log(Level.SEVERE, "Error getting InputStream for: " + pathInRepository, e);
-		}
-		if (stream == null)
+	private InputStream getStream(String path) throws Exception {
+		if (StringUtil.isEmpty(path))
 			return null;
 
-		try {
-			FileUtil.streamToFile(stream, file);
-		} catch(Exception e) {
-			getLogger().log(Level.SEVERE, "Error streaming from " + pathInRepository + " to file: " + file.getName(), e);
-		} finally {
-			IOUtil.closeInputStream(stream);
+		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
+			try {
+			if (getRepositoryService().getExistence(path))
+				return getRepositoryService().getInputStreamAsRoot(path);
+			} catch (RepositoryException e) {
+				getLogger().log(Level.WARNING, "Error getting stream to " + path, e);
+			}
 		}
 
-		return file;
+		File tmp = new File(path);
+		if (!tmp.exists() || !tmp.canRead())
+			return null;
+
+		return new FileInputStream(tmp);
 	}
 
 	private IWHttpSessionsManager getSessionsManager() {

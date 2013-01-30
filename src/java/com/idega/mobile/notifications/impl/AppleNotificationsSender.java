@@ -11,12 +11,14 @@ import java.util.logging.Level;
 import javapns.Push;
 import javapns.communication.exceptions.CommunicationException;
 import javapns.communication.exceptions.KeystoreException;
+import javapns.notification.PushedNotifications;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.NotificationSubscription;
@@ -73,7 +75,8 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 			if (ListUtil.isEmpty(devices))
 				continue;
 
-			boolean production = getApplication().getSettings().getBoolean("ios_push_production", Boolean.FALSE);
+			IWMainApplicationSettings settings = getApplication().getSettings();
+			boolean production = settings.getBoolean("ios_push_production", Boolean.FALSE);
 			String keyStore = getKeyStore();
 			if (StringUtil.isEmpty(keyStore)) {
 				getLogger().warning("Invalid path to keystore");
@@ -90,8 +93,12 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				return false;
 			}
 
+			PushedNotifications sent = null;
 			try {
-				Push.alert(message, keyStore, password, production, devices);
+				if (settings.getBoolean("notification_send_test", Boolean.FALSE)) {
+					sent = Push.test(keyStore, password, production, devices);
+				} else
+					sent = Push.alert(message, keyStore, password, production, devices);
 			} catch (CommunicationException e) {
 				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
 				getLogger().log(Level.WARNING, errorMessage, e);
@@ -107,6 +114,16 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				getLogger().log(Level.WARNING, errorMessage, e);
 				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
+			} finally {
+				if (sent == null) {
+					getLogger().warning("Failed to sent notification " + message + " for devices " + devices);
+				} else {
+					try {
+						PushedNotifications failed = sent.getFailedNotifications();
+						PushedNotifications succeeded = sent.getSuccessfulNotifications();
+						getLogger().info("Failed: " + failed + "\nSucceeded: " + succeeded);
+					} catch (Exception e) {}
+				}
 			}
 		}
 

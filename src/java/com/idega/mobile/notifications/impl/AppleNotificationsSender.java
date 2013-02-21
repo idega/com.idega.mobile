@@ -76,7 +76,7 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				continue;
 
 			IWMainApplicationSettings settings = getApplication().getSettings();
-			boolean production = settings.getBoolean("ios_push_production", Boolean.FALSE);
+			boolean production = settings.getBoolean("ios_push_production", !isDevelopementState());
 			String keyStore = getKeyStore();
 			if (StringUtil.isEmpty(keyStore)) {
 				getLogger().warning("Invalid path to keystore");

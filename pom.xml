@@ -76,6 +76,10 @@
         <!-- Addons -->
         <dependency>
             <groupId>com.idega.block.addon</groupId>
+            <artifactId>com.idega.restful</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.idega.block.addon</groupId>
             <artifactId>com.idega.block.email</artifactId>
         </dependency>
         <dependency>
@@ -131,12 +135,6 @@
             <version>1.2.5</version>
         </dependency>
 
-        <!-- GSON from Google -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-        
         <!-- Apple push notifications API -->
         <dependency>
 	        <groupId>com.googlecode.javapns</groupId>

@@ -22,9 +22,9 @@ import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
-import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
+import com.idega.restful.business.DefaultRestfulService;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -45,7 +45,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Autowired
 	private IWHttpSessionsManager httpSessionsManager;
 
-    @GET
+    @Override
+	@GET
     @Path(MobileConstants.URI_LOGIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doLogin(@QueryParam("username") String username, @QueryParam("password") String password) {
@@ -97,7 +98,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	return id == null ? null : String.valueOf(id);
     }
 
-    @GET
+    @Override
+	@GET
     @Path(MobileConstants.URI_LOGOUT)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doLogout(@QueryParam("username") String username) {
@@ -187,6 +189,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return httpSessionsManager;
 	}
 
+	@Override
 	@GET
 	@Path(MobileConstants.URI_PING)
 	@Produces(MediaType.APPLICATION_JSON)

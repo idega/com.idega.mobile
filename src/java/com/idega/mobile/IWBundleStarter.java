@@ -5,14 +5,12 @@ import com.idega.idegaweb.IWBundleStartable;
 
 public class IWBundleStarter implements IWBundleStartable {
 
+	@Override
 	public void start(IWBundle starterBundle) {
-		// TODO Auto-generated method stub
-
 	}
 
+	@Override
 	public void stop(IWBundle starterBundle) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

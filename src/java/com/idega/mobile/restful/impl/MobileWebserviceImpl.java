@@ -34,9 +34,9 @@ import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsCenter;
-import com.idega.mobile.restful.DefaultRestfulService;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
+import com.idega.restful.business.DefaultRestfulService;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
@@ -288,6 +288,5 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + message + ") to token " + token);
 	}
-
 
 }

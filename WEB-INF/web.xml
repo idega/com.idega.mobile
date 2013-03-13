@@ -4,17 +4,8 @@ xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
 
-    <servlet>
-        <servlet-name>Mobile REST Servlet</servlet-name>
-        <servlet-class>com.idega.mobile.servlet.IdegaMobileRestfulServlet</servlet-class>
-        <init-param>
-            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <load-on-startup>10</load-on-startup>
-    </servlet>
     <servlet-mapping>
-        <servlet-name>Mobile REST Servlet</servlet-name>
+        <servlet-name>Default RESTful Servlet</servlet-name>
         <url-pattern>/mobile/*</url-pattern>
     </servlet-mapping>
     
@@ -39,12 +30,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
     </security-constraint>
     -->
     
-    <filter>
-		<filter-name>Mobile REST Filter</filter-name>
-		<filter-class>com.idega.mobile.servlet.IdegaMobileRestfulServlet</filter-class>
-	</filter>
     <filter-mapping>
-		<filter-name>Mobile REST Filter</filter-name>
+		<filter-name>Default RESTful Filter</filter-name>
 		<url-pattern>/mobile/*</url-pattern>
 	</filter-mapping>
 </web-app>

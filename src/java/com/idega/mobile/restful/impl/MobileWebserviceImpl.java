@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
@@ -38,6 +37,7 @@ import com.idega.mobile.notifications.NotificationsCenter;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.restful.business.DefaultRestfulService;
+import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
@@ -175,6 +175,10 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return Response.ok(stream, mimeType).build();
 	}
 
+    private IWSlideService getRepositoryService() {
+    	return getServiceInstance(IWSlideService.class);
+    }
+
 	private InputStream getStream(String path) throws Exception {
 		if (StringUtil.isEmpty(path))
 			return null;
@@ -182,8 +186,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
 			try {
 			if (getRepositoryService().getExistence(path))
-				return getRepositoryService().getInputStreamAsRoot(path);
-			} catch (RepositoryException e) {
+				return getRepositoryService().getInputStream(path);
+			} catch (Exception e) {
 				getLogger().log(Level.WARNING, "Error getting stream to " + path, e);
 			}
 		}

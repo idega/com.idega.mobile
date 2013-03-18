@@ -4,34 +4,30 @@ xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
 
+	<servlet>
+        <servlet-name>Mobile RESTful Servlet</servlet-name>
+        <servlet-class>com.idega.mobile.servlet.MobileServlet</servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>com.idega.mobile.restful</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>10</load-on-startup>
+    </servlet>
     <servlet-mapping>
-        <servlet-name>Default RESTful Servlet</servlet-name>
+        <servlet-name>Mobile RESTful Servlet</servlet-name>
         <url-pattern>/mobile/*</url-pattern>
     </servlet-mapping>
     
-    <!-- Configuration for HTTPS protocol -->
-    <!--
-    <security-constraint>
-    	<web-resource-collection>
-    		<web-resource-name>Securing all requests to ePlatform</web-resource-name>
-    		<description>Redirect all to SSL</description>
-    		<url-pattern>/*</url-pattern>
-    		<http-method>GET</http-method>
-    		<http-method>POST</http-method>
-    		<http-method>HEAD</http-method>
-    		<http-method>PUT</http-method>
-    		<http-method>OPTIONS</http-method>
-    		<http-method>TRACE</http-method>
-    		<http-method>DELETE</http-method>
-    	</web-resource-collection>
-    	<user-data-constraint>
-    		<transport-guarantee>CONFIDENTIAL</transport-guarantee>
-    	</user-data-constraint>
-    </security-constraint>
-    -->
-    
+    <filter>
+		<filter-name>Mobile RESTful Filter</filter-name>
+		<filter-class>com.idega.mobile.servlet.MobileServlet</filter-class>
+	</filter>
     <filter-mapping>
-		<filter-name>Default RESTful Filter</filter-name>
+		<filter-name>Mobile RESTful Filter</filter-name>
 		<url-pattern>/mobile/*</url-pattern>
 	</filter-mapping>
 </web-app>

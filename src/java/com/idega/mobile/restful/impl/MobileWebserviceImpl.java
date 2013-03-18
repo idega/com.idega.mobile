@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
@@ -49,6 +50,8 @@ import com.idega.util.expression.ELUtil;
  * Date: 2012-03-14
  * Time: 09:33
  */
+
+@Component
 @Path(MobileConstants.URI)
 public class MobileWebserviceImpl extends DefaultRestfulService implements MobileWebservice {
 

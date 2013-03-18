@@ -31,15 +31,13 @@ public class NotificationsCenter extends DefaultSpringBean {
 	private MobileDAO mobileDAO;
 
 	private Collection<NotificationsSender> getNotificationsSenders() {
-		Map<?, ?> beans = WebApplicationContextUtils.getWebApplicationContext(getApplication().getServletContext())
+		Map<String, NotificationsSender> senders = WebApplicationContextUtils.getWebApplicationContext(getApplication().getServletContext())
 				.getBeansOfType(NotificationsSender.class);
 
-		if (MapUtil.isEmpty(beans))
+		if (MapUtil.isEmpty(senders))
 			return Collections.emptyList();
 
-		@SuppressWarnings("unchecked")
-		Collection<NotificationsSender> senders = (Collection<NotificationsSender>) beans.values();
-		return senders;
+		return senders.values();
 	}
 
 	private Map<String, List<NotificationSubscription>> getSubscriptions(String notificationObject, List<Integer> subscribersToExclude) {

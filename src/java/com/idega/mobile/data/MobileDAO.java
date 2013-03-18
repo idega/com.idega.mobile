@@ -13,6 +13,7 @@ public interface MobileDAO extends GenericDao {
 	public List<NotificationSubscription> getSubscriptions(List<String> tokens, String objectId);
 
 	public NotificationSubscription getNotificationSubscription(Integer userId, String token, String objectId);
+	public List<NotificationSubscription> getNotificationSubscriptions(Integer userId, String objectId);
 
 	public NotificationSubscription doCreateSubscription(Integer userId, String token, Locale locale, String objectId, String device);
 	public boolean doDeleteSubscription(Integer userId, String token, String objectId);

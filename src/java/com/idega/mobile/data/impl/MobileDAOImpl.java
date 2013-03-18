@@ -54,6 +54,21 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 	}
 
 	@Override
+	public List<NotificationSubscription> getNotificationSubscriptions(Integer userId, String objectId) {
+		if (userId == null || StringUtil.isEmpty(objectId)) {
+			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", object ID: " + objectId);
+			return null;
+		}
+
+		return getResultListByInlineQuery("select s from " + NotificationSubscription.class.getName() +
+				" s where s.userId = :userId and s.subscribedOn = :notifyOn",
+				NotificationSubscription.class,
+				new Param("userId", userId),
+				new Param("notifyOn", objectId)
+		);
+	}
+
+	@Override
 	@Transactional(readOnly = false)
 	public NotificationSubscription doCreateSubscription(Integer userId, String token, Locale locale, String objectId, String device) {
 		NotificationSubscription subscription = getNotificationSubscription(userId, token, objectId);

@@ -93,12 +93,25 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				return false;
 			}
 
+			String badgeValue = settings.getProperty("notification_badge");
+			int badge = -1;
+			if (!StringUtil.isEmpty(badgeValue)) {
+				try {
+					badge = Integer.valueOf(badgeValue);
+				} catch (NumberFormatException e) {}
+			}
+			String sound = settings.getProperty("notification_sound");
+
 			PushedNotifications sent = null;
 			try {
 				if (settings.getBoolean("notification_send_test", Boolean.FALSE)) {
 					sent = Push.test(keyStore, password, production, devices);
-				} else
-					sent = Push.alert(message, keyStore, password, production, devices);
+				} else {
+					if (badge != -1 && !StringUtil.isEmpty(sound))
+						sent = Push.combined(message, badge, sound, keyStore, password, production, devices);
+					else
+						sent = Push.alert(message, keyStore, password, production, devices);
+				}
 			} catch (CommunicationException e) {
 				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
 				getLogger().log(Level.WARNING, errorMessage, e);

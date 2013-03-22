@@ -181,16 +181,23 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
 			try {
-			if (getRepositoryService().getExistence(path))
-				return getRepositoryService().getInputStreamAsRoot(path);
+				if (getRepositoryService().getExistence(path))
+					return getRepositoryService().getInputStreamAsRoot(path);
 			} catch (RepositoryException e) {
 				getLogger().log(Level.WARNING, "Error getting stream to " + path, e);
 			}
 		}
 
 		File tmp = new File(path);
-		if (!tmp.exists() || !tmp.canRead())
-			return null;
+		if (!tmp.exists() || !tmp.canRead()) {
+			if (path.startsWith(File.separator)) {
+				path = path.substring(1);
+				tmp = new File(path);
+				if (!tmp.exists() || !tmp.canRead())
+					return null;
+			} else
+				return null;
+		}
 
 		return new FileInputStream(tmp);
 	}

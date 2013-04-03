@@ -1,5 +1,6 @@
 package com.idega.mobile.bean;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,6 +16,8 @@ public class Notification {
 	private String notifyOn;
 
 	private List<NotificationSubscription> subscriptions;
+
+	private Map<String, String> dictionaries;
 
 	public Notification(Map<Locale, String> messages, List<NotificationSubscription> subscriptions) {
 		super();
@@ -66,6 +69,20 @@ public class Notification {
 
 	public void setSubscriptions(List<NotificationSubscription> subscriptions) {
 		this.subscriptions = subscriptions;
+	}
+
+	public Map<String, String> getDictionaries() {
+		return dictionaries;
+	}
+
+	public void setDictionaries(Map<String, String> dictionaries) {
+		this.dictionaries = dictionaries;
+	}
+
+	public void addDictionary(String name, String value) {
+		if (dictionaries == null)
+			dictionaries = new HashMap<String, String>();
+		dictionaries.put(name, value);
 	}
 
 	@Override

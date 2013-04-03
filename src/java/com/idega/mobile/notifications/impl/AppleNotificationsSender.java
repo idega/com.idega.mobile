@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 
 import javapns.Push;
 import javapns.communication.exceptions.CommunicationException;
 import javapns.communication.exceptions.KeystoreException;
+import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotifications;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -77,14 +79,14 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 
 			IWMainApplicationSettings settings = getApplication().getSettings();
 			boolean production = settings.getBoolean("ios_push_production", !isDevelopementState());
-			String keyStore = getKeyStore();
-			if (StringUtil.isEmpty(keyStore)) {
+			String keystore = getKeyStore();
+			if (StringUtil.isEmpty(keystore)) {
 				getLogger().warning("Invalid path to keystore");
 				return false;
 			}
-			File tmp = new File(keyStore);
+			File tmp = new File(keystore);
 			if (!tmp.exists()) {
-				getLogger().warning("Keystore at " + keyStore + " does not exist");
+				getLogger().warning("Keystore at " + keystore + " does not exist");
 				return false;
 			}
 			String password = getPassword();
@@ -93,24 +95,35 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				return false;
 			}
 
-			String badgeValue = settings.getProperty("notification_badge");
+			String badgeValue = settings.getProperty("notification_badge", "1");
 			int badge = -1;
 			if (!StringUtil.isEmpty(badgeValue)) {
 				try {
 					badge = Integer.valueOf(badgeValue);
 				} catch (NumberFormatException e) {}
 			}
-			String sound = settings.getProperty("notification_sound");
+			String sound = settings.getProperty("notification_sound", "default");
 
 			PushedNotifications sent = null;
 			try {
 				if (settings.getBoolean("notification_send_test", Boolean.FALSE)) {
-					sent = Push.test(keyStore, password, production, devices);
+					sent = Push.test(keystore, password, production, devices);
 				} else {
-					if (badge != -1 && !StringUtil.isEmpty(sound))
-						sent = Push.combined(message, badge, sound, keyStore, password, production, devices);
-					else
-						sent = Push.alert(message, keyStore, password, production, devices);
+					PushNotificationPayload payload = PushNotificationPayload.complex();
+					payload.addAlert(message);
+					if (badge != -1)
+						payload.addBadge(badge);
+					if (!StringUtil.isEmpty(sound))
+						payload.addSound(sound);
+					payload.addCustomDictionary("id", new Random().nextInt(Integer.MAX_VALUE));
+					Map<String, String> dictionaries = notification.getDictionaries();
+					if (!MapUtil.isEmpty(dictionaries)) {
+						for (Map.Entry<String, String> dictionary: dictionaries.entrySet()) {
+							payload.addCustomDictionary(dictionary.getKey(), dictionary.getValue());
+						}
+					}
+
+					sent = Push.payload(payload, keystore, password, production, devices);
 				}
 			} catch (CommunicationException e) {
 				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
@@ -118,7 +131,7 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
 			} catch (KeystoreException e) {
-				String errorMessage = "Error while trying to intercept with keystore at " + keyStore;
+				String errorMessage = "Error while trying to intercept with keystore at " + keystore;
 				getLogger().log(Level.WARNING, errorMessage, e);
 				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;

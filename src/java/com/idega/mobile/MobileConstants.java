@@ -14,7 +14,7 @@ public class MobileConstants {
 								URI_NOTIFICATION = "/notification",
 
 								DEVICE_IOS = "iOS",
-								DEVIDE_ANDROID = "android",
+								DEVICE_ANDROID = "Android",
 
 								PARAM_TOKEN = "token",
 								PARAM_MSG = "msg",

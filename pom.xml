@@ -153,6 +153,13 @@
 			<artifactId>bcprov-jdk16</artifactId>
 			<version>1.46</version>
 		</dependency>
+		
+		<!-- Android push notifications API -->
+		<dependency>
+		      <groupId>com.google.android</groupId>
+		      <artifactId>gcm-server</artifactId>
+		      <version>1.0.2</version>
+		</dependency>
     </dependencies>
 
     <repositories>

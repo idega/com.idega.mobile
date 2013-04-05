@@ -2,7 +2,6 @@ package com.idega.mobile.notifications.impl;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.idega.core.business.DefaultSpringBean;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
@@ -27,41 +25,46 @@ import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsSender;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
-import com.idega.util.LocaleUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
 
 @Service
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class AppleNotificationsSender extends DefaultSpringBean implements NotificationsSender {
+public class AppleNotificationsSender extends NotificationsSender {
 
 	@Override
-	public boolean doSendNotification(Notification notification, List<NotificationSubscription> subscriptions) {
-		if (notification == null || ListUtil.isEmpty(subscriptions))
+	public boolean doSendNotification(Notification notification, Map<Locale, String> messages,
+			Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
+
+		//	Settings
+		IWMainApplicationSettings settings = getApplication().getSettings();
+		boolean production = settings.getBoolean("ios_push_production", !isDevelopementState());
+		String keystore = getKeyStore();
+		if (StringUtil.isEmpty(keystore)) {
+			getLogger().warning("Invalid path to keystore");
 			return false;
-
-		Map<Locale, String> messages = notification.getMessages();
-		if (MapUtil.isEmpty(messages))
+		}
+		File tmp = new File(keystore);
+		if (!tmp.exists()) {
+			getLogger().warning("Keystore at " + keystore + " does not exist");
 			return false;
-
-		Map<Locale, List<NotificationSubscription>> groupedSubscriptions = new HashMap<Locale, List<NotificationSubscription>>();
-		for (NotificationSubscription subscription: subscriptions) {
-			Locale locale = null;
-
-			String localeId = subscription.getLocale();
-			if (!StringUtil.isEmpty(localeId))
-				locale = LocaleUtil.getLocale(localeId);
-			if (locale == null)
-				locale = Locale.ENGLISH;
-
-			List<NotificationSubscription> group = groupedSubscriptions.get(locale);
-			if (group == null) {
-				group = new ArrayList<NotificationSubscription>();
-				groupedSubscriptions.put(locale, group);
-			}
-			group.add(subscription);
+		}
+		String password = getPassword();
+		if (StringUtil.isEmpty(password)) {
+			getLogger().warning("Password for keystore is invalid");
+			return false;
 		}
 
+		String badgeValue = settings.getProperty("notification_badge", "1");
+		int badge = -1;
+		if (!StringUtil.isEmpty(badgeValue)) {
+			try {
+				badge = Integer.valueOf(badgeValue);
+			} catch (NumberFormatException e) {}
+		}
+		String sound = settings.getProperty("notification_sound", "default");
+
+		//	Sending messages
 		for (Locale locale: groupedSubscriptions.keySet()) {
 			List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
 			if (ListUtil.isEmpty(localizedSubscriptions))
@@ -76,33 +79,6 @@ public class AppleNotificationsSender extends DefaultSpringBean implements Notif
 				devices.add(subscription.getToken());
 			if (ListUtil.isEmpty(devices))
 				continue;
-
-			IWMainApplicationSettings settings = getApplication().getSettings();
-			boolean production = settings.getBoolean("ios_push_production", !isDevelopementState());
-			String keystore = getKeyStore();
-			if (StringUtil.isEmpty(keystore)) {
-				getLogger().warning("Invalid path to keystore");
-				return false;
-			}
-			File tmp = new File(keystore);
-			if (!tmp.exists()) {
-				getLogger().warning("Keystore at " + keystore + " does not exist");
-				return false;
-			}
-			String password = getPassword();
-			if (StringUtil.isEmpty(password)) {
-				getLogger().warning("Password for keystore is invalid");
-				return false;
-			}
-
-			String badgeValue = settings.getProperty("notification_badge", "1");
-			int badge = -1;
-			if (!StringUtil.isEmpty(badgeValue)) {
-				try {
-					badge = Integer.valueOf(badgeValue);
-				} catch (NumberFormatException e) {}
-			}
-			String sound = settings.getProperty("notification_sound", "default");
 
 			PushedNotifications sent = null;
 			try {

@@ -55,7 +55,7 @@ public class AppleNotificationsSender extends NotificationsSender {
 			return false;
 		}
 
-		String badgeValue = settings.getProperty("notification_badge", "1");
+		String badgeValue = settings.getProperty("notification_badge", "0");
 		int badge = -1;
 		if (!StringUtil.isEmpty(badgeValue)) {
 			try {

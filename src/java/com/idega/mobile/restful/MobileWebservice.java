@@ -11,9 +11,10 @@ public interface MobileWebservice {
 	 *
 	 * @param username
 	 * @param password
+	 * @param type - optional (bank ID, Facebook etc.)
 	 * @return Response to the request ({@link LoginResult}) about the attempt to login
 	 */
-	public Response doLogin(String username, String password);
+	public Response doLogin(String username, String password, String type);
 
 	/**
 	 * Logs out user. GET: /mobile/logout

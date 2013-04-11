@@ -70,7 +70,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doLogin(
     		@QueryParam("username") String username,
-    		@QueryParam("password") String password
+    		@QueryParam("password") String password,
+    		@QueryParam("type") String type
     ) {
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {

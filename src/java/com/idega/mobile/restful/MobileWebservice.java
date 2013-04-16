@@ -3,6 +3,7 @@ package com.idega.mobile.restful;
 import javax.ws.rs.core.Response;
 
 import com.idega.mobile.bean.LoginResult;
+import com.idega.mobile.bean.Subscription;
 
 public interface MobileWebservice {
 
@@ -41,4 +42,23 @@ public interface MobileWebservice {
 	 * @return
 	 */
 	public Response doSendNotification(String token, String message, String locale, String objectId);
+
+	/**
+	 * Subscribes user to the push notifications. POST: /mobile/subscribe
+	 *
+	 * @param userId
+	 * @param subscription
+	 * @return
+	 */
+	public Response doSubscribe(String userId, Subscription subscription);
+
+	/**
+	 * Verifies whether user is subscribed for push notifications. GET: /mobile/subscribe
+	 *
+	 * @param userId
+	 * @param token
+	 * @param notifyOn
+	 * @return
+	 */
+	public Response isSubscribed(String userId, String token, String notifyOn);
 }

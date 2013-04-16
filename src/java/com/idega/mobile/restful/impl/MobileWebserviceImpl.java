@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -32,24 +34,20 @@ import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
+import com.idega.mobile.bean.Subscription;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsCenter;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.restful.business.DefaultRestfulService;
+import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
+import com.idega.util.LocaleUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
-
-/**
- * Description
- * User: Simon Sönnby
- * Date: 2012-03-14
- * Time: 09:33
- */
 
 @Component
 @Path(MobileConstants.URI)
@@ -258,7 +256,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
 			@QueryParam(MobileConstants.PARAM_MSG) String message,
 			@QueryParam(MobileConstants.PARAM_LOCALE) String locale,
-			@QueryParam(MobileConstants.PARAM_OBJECT_ID) String objectId
+			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn
 	) {
 		String msg = null;
 		if (StringUtil.isEmpty(token)) {
@@ -275,16 +273,16 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			getLogger().warning("Locale is not provided, using " + Locale.ENGLISH);
 			locale = Locale.ENGLISH.toString();
 		}
-		if (StringUtil.isEmpty(objectId)) {
-			objectId = getApplication().getSettings().getProperty("default_notification_object");
-			if (StringUtil.isEmpty(objectId)) {
+		if (StringUtil.isEmpty(notifyOn)) {
+			notifyOn = getApplication().getSettings().getProperty("default_notification_object", MobileConstants.NOTIFY_ON_ALL);
+			if (StringUtil.isEmpty(notifyOn)) {
 				msg = "Object ID is not provided";
 				getLogger().warning(msg);
 				return getResponse(Response.Status.BAD_REQUEST, msg);
 			}
 		}
 
-		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(token), objectId);
+		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(token), notifyOn);
 		if (ListUtil.isEmpty(subscriptions)) {
 			msg = "There are no subscriptions by token " + token;
 			getLogger().warning(msg);
@@ -298,6 +296,113 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			return getResponse(Response.Status.OK, token);
 
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + message + ") to token " + token);
+	}
+
+	@Override
+	@Path(MobileConstants.URI_SUBSCRIBE)
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response doSubscribe(
+			@HeaderParam(MobileConstants.PARAM_USER_ID) String userId,
+			Subscription subscription
+	) {
+		String message = null;
+		if (StringUtil.isEmpty(userId)) {
+			message = "User ID is not provided";
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+		if (subscription == null) {
+			message = "Subscription data is not provided";
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+		if (StringUtil.isEmpty(subscription.getToken())) {
+			message = "Device's token is not provided";
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+
+		Boolean subscribing = null;
+		try {
+			String notifyOn = subscription.getNotifyOn();
+			if (StringUtil.isEmpty(notifyOn))
+				notifyOn = MobileConstants.NOTIFY_ON_ALL;
+
+			User user = getUser(userId);
+			if (user == null)
+				return getResponse(Response.Status.BAD_REQUEST, "User can not be found by ID: " + userId);
+			Integer usrId = Integer.valueOf(user.getId());
+
+			boolean success = false;
+			subscribing = subscription.isSubscribe();
+			if (subscribing != null && subscribing) {
+				Locale locale = LocaleUtil.getLocale(subscription.getLocaleId());
+				if (locale == null)
+					locale = Locale.ENGLISH;
+				success = getNotificationsCenter().doSubscribe(usrId, subscription.getToken(), locale, notifyOn, subscription.getDevice());
+				message = success ? "User " + user + " successfully subscribed to notifications for " + notifyOn :
+									"Error while subscribing user " + user + " to notifications for " + notifyOn;
+			} else {
+				success = getNotificationsCenter().doUnSubscribe(usrId, subscription.getToken(), notifyOn);
+				message = success ? "User " + user + " successfully unsubscribed from notifications for all issues" :
+									"Error while unsubscribing user " + user + " from notifications for all issues";
+			}
+
+			subscription.setSuccess(success);
+			return getResponse(success ? Response.Status.OK : Response.Status.INTERNAL_SERVER_ERROR, subscription);
+		} catch (Exception e) {
+			message = "Error while " + (subscribing != null && subscribing ? "subscribing" : "unsubscribing") + " with data: user ID: " + userId +
+					", susbcription data: " + subscription;
+			getLogger().log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+		}
+
+		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
+	}
+
+	@Override
+	@Path(MobileConstants.URI_SUBSCRIBE)
+	@GET
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response isSubscribed(
+			@HeaderParam(MobileConstants.PARAM_USER_ID) String userId,
+
+			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
+			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn
+	) {
+		if (StringUtil.isEmpty(notifyOn))
+			notifyOn = MobileConstants.NOTIFY_ON_ALL;
+
+		String message = "checking whether user is subscribed. User ID: " + userId + ", token: " + token + ", notify on: " + notifyOn;
+		if (StringUtil.isEmpty(userId)) {
+			message = "Error while " + message;
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+		if (StringUtil.isEmpty(token)) {
+			message = "Error while " + message;
+			getLogger().warning(message);
+			return getResponse(Response.Status.BAD_REQUEST, message);
+		}
+
+		try {
+			User user = getUser(userId);
+			if (user == null)
+				return getResponse(Response.Status.BAD_REQUEST, "User can not be found by ID: " + userId);
+			Integer usrId = Integer.valueOf(user.getId());
+
+			Subscription result = new Subscription(getNotificationsCenter().isSubscribed(usrId, token, notifyOn));
+			result.setToken(token);
+			return getResponse(Response.Status.OK, result);
+		} catch (Exception e) {
+			message = "Error while " + message;
+			getLogger().log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+		}
+		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
 
 }

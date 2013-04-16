@@ -41,7 +41,7 @@ public class AndroidNotificationsSender extends NotificationsSender {
 			return false;
 		}
 
-		int retries = settings.getInt("mun.android_notif_retries", 5);
+		int retries = Integer.valueOf(settings.getProperty("mun.android_notif_retries", "5"));
 
 		Sender sender = new Sender(apiKey);
 		for (Locale locale: groupedSubscriptions.keySet()) {

@@ -180,7 +180,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
 			try {
 				if (getRepositoryService().getExistence(path))
-					return getRepositoryService().getInputStream(path);
+					return getRepositoryService().getInputStreamAsRoot(path);
 			} catch (Exception e) {
 				getLogger().log(Level.WARNING, "Error getting stream to " + path, e);
 			}

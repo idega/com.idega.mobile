@@ -40,7 +40,6 @@ import com.idega.mobile.notifications.NotificationsCenter;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.restful.business.DefaultRestfulService;
-import com.idega.slide.business.IWSlideService;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
@@ -199,10 +198,6 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		}
 
 		return new FileInputStream(tmp);
-	}
-
-	protected IWSlideService getRepositoryService() {
-		return getServiceInstance(IWSlideService.class);
 	}
 
 	private IWHttpSessionsManager getSessionsManager() {

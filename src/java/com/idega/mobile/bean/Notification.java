@@ -9,7 +9,7 @@ import com.idega.mobile.data.NotificationSubscription;
 
 public class Notification {
 
-	private List<Integer> exclusions;
+	private Integer[] exclusions;
 
 	private Map<Locale, String> messages;
 
@@ -26,24 +26,17 @@ public class Notification {
 		this.subscriptions = subscriptions;
 	}
 
-	public Notification(Map<Locale, String> messages, String notifyOn) {
-		super();
+	public Notification(Map<Locale, String> messages, String notifyOn, List<NotificationSubscription> subscriptions) {
+		this(messages, subscriptions);
 
-		this.messages = messages;
 		this.notifyOn = notifyOn;
 	}
 
-	public Notification(Map<Locale, String> messages, String notifyOn, List<Integer> exclusions) {
-		this(messages, notifyOn);
-
-		this.exclusions = exclusions;
-	}
-
-	public List<Integer> getExclusions() {
+	public Integer[] getExclusions() {
 		return exclusions;
 	}
 
-	public void setExclusions(List<Integer> exclusions) {
+	public void setExclusions(Integer[] exclusions) {
 		this.exclusions = exclusions;
 	}
 
@@ -87,7 +80,7 @@ public class Notification {
 
 	@Override
 	public String toString() {
-		return "Notification on: " + getNotifyOn() + ", excluding users: " + getExclusions() + ", messages: " + getMessages();
+		return "Notification on: " + getNotifyOn() + ", messages: " + getMessages() + ", receivers: " + getSubscriptions();
 	}
 
 }

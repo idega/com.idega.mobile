@@ -1,6 +1,7 @@
 package com.idega.mobile.notifications;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import com.idega.core.business.DefaultSpringBean;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
+import com.idega.util.ArrayUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
@@ -40,15 +42,15 @@ public class NotificationsCenter extends DefaultSpringBean {
 		return senders.values();
 	}
 
-	private Map<String, List<NotificationSubscription>> getSubscriptions(String notificationObject, List<Integer> subscribersToExclude) {
+	private Map<String, List<NotificationSubscription>> getSubscriptions(String notificationObject, Integer... subscribersToExclude) {
 		if (StringUtil.isEmpty(notificationObject)) {
 			getLogger().warning("Notification object is not provided");
 			return Collections.emptyMap();
 		}
 
-		List<NotificationSubscription> subscriptions = ListUtil.isEmpty(subscribersToExclude) ?
+		List<NotificationSubscription> subscriptions = ArrayUtil.isEmpty(subscribersToExclude) ?
 				mobileDAO.getSubscriptionsForObject(notificationObject) :
-				mobileDAO.getSubscriptionsForObjectExcludingUsers(notificationObject, subscribersToExclude);
+				mobileDAO.getSubscriptionsForObjectExcludingUsers(notificationObject, new ArrayList<Integer>(Arrays.asList(subscribersToExclude)));
 		if (ListUtil.isEmpty(subscriptions))
 			return Collections.emptyMap();
 

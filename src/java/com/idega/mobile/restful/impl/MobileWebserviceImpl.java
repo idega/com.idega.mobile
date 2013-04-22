@@ -280,7 +280,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		if (StringUtil.isEmpty(notifyOn)) {
 			notifyOn = getApplication().getSettings().getProperty("default_notification_object", MobileConstants.NOTIFY_ON_ALL);
 			if (StringUtil.isEmpty(notifyOn)) {
-				msg = "Object ID is not provided";
+				msg = "Notify on is not provided";
 				getLogger().warning(msg);
 				return getResponse(Response.Status.BAD_REQUEST, msg);
 			}

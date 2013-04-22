@@ -124,7 +124,10 @@ public class AppleNotificationsSender extends NotificationsSender {
 						PushedNotifications failed = sent.getFailedNotifications();
 						PushedNotifications succeeded = sent.getSuccessfulNotifications();
 						getLogger().info("Failed: " + failed + "\nSucceeded: " + succeeded);
-					} catch (Exception e) {}
+					} catch (Exception e) {
+						getLogger().log(Level.WARNING, "Failed to log status about notification " + notification + ", message: " + messages +
+								" addressed to " + groupedSubscriptions, e);
+					}
 				}
 			}
 		}

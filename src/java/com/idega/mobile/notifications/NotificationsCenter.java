@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.mobile.bean.Notification;
@@ -33,8 +32,7 @@ public class NotificationsCenter extends DefaultSpringBean {
 	private MobileDAO mobileDAO;
 
 	private Collection<NotificationsSender> getNotificationsSenders() {
-		Map<String, NotificationsSender> senders = WebApplicationContextUtils.getWebApplicationContext(getApplication().getServletContext())
-				.getBeansOfType(NotificationsSender.class);
+		Map<String, NotificationsSender> senders = getBeansOfType(NotificationsSender.class);
 
 		if (MapUtil.isEmpty(senders))
 			return Collections.emptyList();

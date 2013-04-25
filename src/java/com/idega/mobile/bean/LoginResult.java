@@ -2,12 +2,19 @@ package com.idega.mobile.bean;
 
 import java.io.Serializable;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Data structure to hold response after user attempted to login
  *
  * @author valdas
  *
  */
+
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class LoginResult implements Serializable {
 
 	private static final long serialVersionUID = -6075144888803306519L;

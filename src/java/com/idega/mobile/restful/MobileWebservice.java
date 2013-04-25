@@ -3,6 +3,7 @@ package com.idega.mobile.restful;
 import javax.ws.rs.core.Response;
 
 import com.idega.mobile.bean.LoginResult;
+import com.idega.mobile.bean.PayloadData;
 import com.idega.mobile.bean.Subscription;
 
 public interface MobileWebservice {
@@ -33,15 +34,16 @@ public interface MobileWebservice {
 	public Response doPing(String httpSessionId);
 
 	/**
-	 * Sends push notification. GET: /mobile/notification?token=...
+	 * Sends push notification. POST: /mobile/notification?token=...
 	 *
 	 * @param token
 	 * @param message
 	 * @param locale
-	 * @param objectId
+	 * @param notifyOn
+	 * @param data
 	 * @return
 	 */
-	public Response doSendNotification(String token, String message, String locale, String objectId);
+	public Response doSendNotification(String token, String message, String locale, String notifyOn, PayloadData data);
 
 	/**
 	 * Subscribes user to the push notifications. POST: /mobile/subscribe

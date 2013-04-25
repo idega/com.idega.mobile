@@ -33,6 +33,7 @@ import com.idega.event.IWHttpSessionsManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
+import com.idega.mobile.bean.PayloadData;
 import com.idega.mobile.bean.Subscription;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
@@ -248,14 +249,17 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	}
 
 	@Override
-	@GET
+	@POST
 	@Path(MobileConstants.URI_NOTIFICATION)
-	@Produces("*/*")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response doSendNotification(
 			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
 			@QueryParam(MobileConstants.PARAM_MSG) String message,
 			@QueryParam(MobileConstants.PARAM_LOCALE) String locale,
-			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn
+			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn,
+
+			PayloadData data
 	) {
 		String msg = null;
 		if (StringUtil.isEmpty(token)) {

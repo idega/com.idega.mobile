@@ -82,6 +82,8 @@ public class AppleNotificationsSender extends NotificationsSender {
 
 			PushedNotifications sent = null;
 			try {
+				getLogger().info("Sending message '" + message + "' to device(s): " + devices + ". Subscriptions: " + localizedSubscriptions);
+
 				if (settings.getBoolean("notification_send_test", Boolean.FALSE)) {
 					sent = Push.test(keystore, password, production, devices);
 				} else {

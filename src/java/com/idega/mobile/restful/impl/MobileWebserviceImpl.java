@@ -30,6 +30,7 @@ import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.localisation.business.ICLocaleBusiness;
 import com.idega.event.IWHttpSessionsManager;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
@@ -253,52 +254,57 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Path(MobileConstants.URI_NOTIFICATION)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response doSendNotification(
-			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
-			@QueryParam(MobileConstants.PARAM_MSG) String message,
-			@QueryParam(MobileConstants.PARAM_LOCALE) String locale,
-			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn,
-
-			PayloadData data
-	) {
+	public Response doSendNotification(PayloadData data) {
 		String msg = null;
-		if (StringUtil.isEmpty(token)) {
+		if (data == null) {
+			msg = "Data is not provided";
+			getLogger().warning(msg);
+			return getResponse(Response.Status.BAD_REQUEST, msg);
+		}
+		if (StringUtil.isEmpty(data.getToken())) {
 			msg = "Token is not provided";
 			getLogger().warning(msg);
 			return getResponse(Response.Status.BAD_REQUEST, msg);
 		}
-		if (StringUtil.isEmpty(message)) {
+		if (StringUtil.isEmpty(data.getMessage())) {
 			msg = "Message is not provided";
 			getLogger().warning(msg);
 			return getResponse(Response.Status.BAD_REQUEST, msg);
 		}
-		if (StringUtil.isEmpty(locale)) {
+		if (StringUtil.isEmpty(data.getLocale())) {
 			getLogger().warning("Locale is not provided, using " + Locale.ENGLISH);
-			locale = Locale.ENGLISH.toString();
+			data.setLocale(Locale.ENGLISH.toString());
 		}
-		if (StringUtil.isEmpty(notifyOn)) {
-			notifyOn = getApplication().getSettings().getProperty("default_notification_object", MobileConstants.NOTIFY_ON_ALL);
+
+		IWMainApplicationSettings settings = getApplication().getSettings();
+		if (StringUtil.isEmpty(data.getNotifyOn())) {
+			String notifyOn = settings.getProperty("default_notification_object", MobileConstants.NOTIFY_ON_ALL);
 			if (StringUtil.isEmpty(notifyOn)) {
 				msg = "Notify on is not provided";
 				getLogger().warning(msg);
 				return getResponse(Response.Status.BAD_REQUEST, msg);
-			}
+			} else
+				data.setNotifyOn(notifyOn);
 		}
 
-		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(token), notifyOn);
+		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(data.getToken()), data.getNotifyOn());
 		if (ListUtil.isEmpty(subscriptions)) {
-			msg = "There are no subscriptions by token " + token;
+			msg = "There are no subscriptions by token " + data.getToken();
 			getLogger().warning(msg);
 			return getResponse(Response.Status.BAD_REQUEST, msg);
 		}
+		if (settings.getBoolean("push_notif_use_latest_subscr", Boolean.TRUE)) {
+			subscriptions = Arrays.asList(subscriptions.get(subscriptions.size() - 1));
+			getLogger().info("Using only the latest subscription: " + subscriptions);
+		}
 
 		Map<Locale, String> messages = new HashMap<Locale, String>();
-		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(locale), message);
+		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(data.getLocale()), data.getLocale());
 		Notification notification = new Notification(messages, subscriptions);
 		if (getNotificationsCenter().doSendNotification(notification))
-			return getResponse(Response.Status.OK, token);
+			return getResponse(Response.Status.OK, data.getToken());
 
-		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + message + ") to token " + token);
+		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + data.getMessage() + ") to token " + data.getToken());
 	}
 
 	@Override

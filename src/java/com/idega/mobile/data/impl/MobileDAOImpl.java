@@ -54,17 +54,17 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 	}
 
 	@Override
-	public List<NotificationSubscription> getNotificationSubscriptions(Integer userId, String objectId) {
-		if (userId == null || StringUtil.isEmpty(objectId)) {
-			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", object ID: " + objectId);
+	public List<NotificationSubscription> getNotificationSubscriptions(Integer userId, String notifyOn) {
+		if (userId == null || StringUtil.isEmpty(notifyOn)) {
+			getLogger().warning("Some parameter(s) are invalid: user ID: " + userId + ", object ID: " + notifyOn);
 			return null;
 		}
 
-		return getResultListByInlineQuery("select s from " + NotificationSubscription.class.getName() +
+		return getResultListByInlineQuery("from " + NotificationSubscription.class.getName() +
 				" s where s.userId = :userId and s.subscribedOn = :notifyOn",
 				NotificationSubscription.class,
 				new Param("userId", userId),
-				new Param("notifyOn", objectId)
+				new Param("notifyOn", notifyOn)
 		);
 	}
 
@@ -103,14 +103,14 @@ public class MobileDAOImpl extends GenericDaoImpl implements MobileDAO {
 	}
 
 	@Override
-	public List<NotificationSubscription> getSubscriptions(List<String> tokens, String objectId) {
-		if (ListUtil.isEmpty(tokens) || StringUtil.isEmpty(objectId))
+	public List<NotificationSubscription> getSubscriptions(List<String> tokens, String notifyOn) {
+		if (ListUtil.isEmpty(tokens) || StringUtil.isEmpty(notifyOn))
 			return null;
 
-		return getResultListByInlineQuery("from " + NotificationSubscription.class.getName() + " s where s.subscribedOn = :object_id and s." +
-				NotificationSubscription.tokenColumn + " in (:tokens)",
+		return getResultListByInlineQuery("from " + NotificationSubscription.class.getName() + " s where s.subscribedOn = :notifyOn and s." +
+				NotificationSubscription.tokenColumn + " in (:tokens) order by s.id",
 				NotificationSubscription.class,
-				new Param("object_id", objectId),
+				new Param("notifyOn", notifyOn),
 				new Param("tokens", tokens)
 		);
 	}

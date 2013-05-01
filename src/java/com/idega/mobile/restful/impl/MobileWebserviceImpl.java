@@ -299,8 +299,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		}
 
 		Map<Locale, String> messages = new HashMap<Locale, String>();
-		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(data.getLocale()), data.getLocale());
+		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(data.getLocale()), data.getMessage());
 		Notification notification = new Notification(messages, subscriptions);
+		notification.setNotifyOn(data.getNotifyOn());
 		if (getNotificationsCenter().doSendNotification(notification))
 			return getResponse(Response.Status.OK, data.getToken());
 

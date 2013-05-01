@@ -67,18 +67,24 @@ public class AppleNotificationsSender extends NotificationsSender {
 		//	Sending messages
 		for (Locale locale: groupedSubscriptions.keySet()) {
 			List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
-			if (ListUtil.isEmpty(localizedSubscriptions))
+			if (ListUtil.isEmpty(localizedSubscriptions)) {
+				getLogger().warning("There are no messages for locale " + locale + ". All subscriptions: " + groupedSubscriptions);
 				continue;
+			}
 
 			String message = messages.get(locale);
-			if (StringUtil.isEmpty(message))
+			if (StringUtil.isEmpty(message)) {
+				getLogger().warning("Message is not provided for locale " + locale + ". All messages: " + messages);
 				continue;
+			}
 
 			List<String> devices = new ArrayList<String>();
 			for (NotificationSubscription subscription: localizedSubscriptions)
 				devices.add(subscription.getToken());
-			if (ListUtil.isEmpty(devices))
+			if (ListUtil.isEmpty(devices)) {
+				getLogger().warning("There are no tokens for localized subscriptions: " + localizedSubscriptions);
 				continue;
+			}
 
 			PushedNotifications sent = null;
 			try {

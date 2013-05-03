@@ -43,34 +43,36 @@ public class AndroidNotificationsSender extends NotificationsSender {
 
 		int retries = settings.getInt("mun.android_notif_retries", 5);
 
-		Sender sender = new Sender(apiKey);
-		for (Locale locale: groupedSubscriptions.keySet()) {
-			List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
-			if (ListUtil.isEmpty(localizedSubscriptions))
-				continue;
+		Message message = null;
+		List<String> devices = null;
+		MulticastResult multicastResult = null;
+		try {
+			Sender sender = new Sender(apiKey);
+			for (Locale locale: groupedSubscriptions.keySet()) {
+				List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
+				if (ListUtil.isEmpty(localizedSubscriptions))
+					continue;
 
-			String msg = messages.get(locale);
-			if (StringUtil.isEmpty(msg))
-				continue;
+				String msg = messages.get(locale);
+				if (StringUtil.isEmpty(msg))
+					continue;
 
-			List<String> devices = new ArrayList<String>();
-			for (NotificationSubscription subscription: localizedSubscriptions)
-				devices.add(subscription.getToken());
-			if (ListUtil.isEmpty(devices))
-				continue;
+				devices = new ArrayList<String>();
+				for (NotificationSubscription subscription: localizedSubscriptions)
+					devices.add(subscription.getToken());
+				if (ListUtil.isEmpty(devices))
+					continue;
 
-			Builder msgBuilder = new Message.Builder();
-			Map<String, String> data = notification.getDictionaries();
-			if (!MapUtil.isEmpty(data)) {
-				for (Map.Entry<String, String> dataEntry: data.entrySet()) {
-					msgBuilder.addData(dataEntry.getKey(), dataEntry.getValue());
+				Builder msgBuilder = new Message.Builder();
+				Map<String, String> data = notification.getDictionaries();
+				if (!MapUtil.isEmpty(data)) {
+					for (Map.Entry<String, String> dataEntry: data.entrySet()) {
+						msgBuilder.addData(dataEntry.getKey(), dataEntry.getValue());
+					}
 				}
-			}
-			msgBuilder.addData("alert", msg);
-			Message message = msgBuilder.build();
+				msgBuilder.addData("alert", msg);
+				message = msgBuilder.build();
 
-			MulticastResult multicastResult = null;
-			try {
 				multicastResult = sender.send(message, devices, retries);
 
 				List<Result> results = multicastResult.getResults();
@@ -89,12 +91,12 @@ public class AndroidNotificationsSender extends NotificationsSender {
 						}
 					}
 				}
-			} catch (Exception e) {
-				String error = "Error sending " + message + " to " + devices + " with " + retries + " retries. Result report: " + multicastResult;
-				getLogger().log(Level.WARNING, error, e);
-				CoreUtil.sendExceptionNotification(error, e);
-				return false;
 			}
+		} catch (Exception e) {
+			String error = "Error sending " + message + " to " + devices + " with " + retries + " retries. Result report: " + multicastResult;
+			getLogger().log(Level.WARNING, error, e);
+			CoreUtil.sendExceptionNotification(error, e);
+			return false;
 		}
 
 		return true;

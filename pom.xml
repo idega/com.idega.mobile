@@ -56,18 +56,6 @@
             <groupId>com.idega.block.platform</groupId>
             <artifactId>com.idega.jackrabbit</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.idega.block.addon</groupId>
-            <artifactId>com.idega.block.email</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.idega.block.platform</groupId>
-            <artifactId>org.apache.axis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.idega.block.platform</groupId>
-            <artifactId>com.idega.block.process.webservice</artifactId>
-        </dependency>
 
         <!-- Addons -->
         <dependency>
@@ -78,20 +66,8 @@
             <groupId>com.idega.block.addon</groupId>
             <artifactId>com.idega.block.email</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.idega.block.addon</groupId>
-            <artifactId>com.idega.xroad</artifactId>
-        </dependency>
 
-        <!-- Hibernate -->
-        <!--
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-commons-annotations</artifactId>
-        </dependency>
-        -->
-
-        <!-- Webservices -->
+        <!-- RESTful Web Services -->
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
@@ -156,10 +132,23 @@
 		
 		<!-- Android push notifications API -->
 		<dependency>
-		      <groupId>com.google.android</groupId>
-		      <artifactId>gcm-server</artifactId>
-		      <version>1.0.2</version>
+			<groupId>com.google.android</groupId>
+		    <artifactId>gcm-server</artifactId>
+		    <version>1.0.2</version>
 		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		
+		<!-- JSON serialization and de-serialization -->
+		<dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${com-google-code-gson-version}</version>
+        </dependency>
+		
     </dependencies>
 
     <repositories>

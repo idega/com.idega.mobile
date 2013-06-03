@@ -21,7 +21,7 @@ public class LoginResult implements Serializable {
 
 	private boolean success;
 
-	private String sessionId, userId;
+	private String sessionId, userId, homePage;
 
 	public LoginResult() {
 		super();
@@ -39,10 +39,11 @@ public class LoginResult implements Serializable {
 		this.sessionId = sessionId;
 	}
 
-	public LoginResult(boolean success, String sessionId, String userId) {
+	public LoginResult(boolean success, String sessionId, String userId, String homePage) {
 		this(success, sessionId);
 
 		this.userId = userId;
+		this.homePage = homePage;
 	}
 
 	public boolean isSuccess() {
@@ -67,6 +68,14 @@ public class LoginResult implements Serializable {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getHomePage() {
+		return homePage;
+	}
+
+	public void setHomePage(String homePage) {
+		this.homePage = homePage;
 	}
 
 }

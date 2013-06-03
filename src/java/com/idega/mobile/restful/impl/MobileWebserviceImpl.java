@@ -25,10 +25,13 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.idega.builder.business.BuilderLogic;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
+import com.idega.core.builder.data.ICPage;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.localisation.business.ICLocaleBusiness;
+import com.idega.data.IDOLookup;
 import com.idega.event.IWHttpSessionsManager;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
@@ -43,6 +46,7 @@ import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
 import com.idega.restful.business.DefaultRestfulService;
 import com.idega.user.data.User;
+import com.idega.user.data.UserHome;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
@@ -93,17 +97,39 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	    	if (login.isLoggedOn(request)) {
 	    		message = "User " + username + " is already logged in";
 	    		getLogger().info(message);
-	    		return getResponse(Response.Status.ACCEPTED, new LoginResult(Boolean.TRUE, sessionId, userId));
+	    		return getResponse(Response.Status.ACCEPTED, new LoginResult(Boolean.TRUE, sessionId, userId, getUserHomePage(userId)));
 	    	}
 
 	    	boolean success = login.logInUser(request, username, password);
+	    	String homePage = null;
+	    	if (success)
+	    		homePage = getUserHomePage(userId);
 	    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, new LoginResult(success, success ? sessionId : null,
-	    			success ? userId : null));
+	    			success ? userId : null, homePage));
     	} catch (Exception e) {
     		message = "Error while trying to login user " + username;
     		getLogger().log(Level.WARNING, message, e);
     		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     	}
+    }
+
+    private String getUserHomePage(String userId) {
+    	if (StringUtil.isEmpty(userId)) {
+    		return null;
+    	}
+
+    	try {
+	    	UserHome userHome = (UserHome) IDOLookup.getHome(User.class);
+	    	User user = userHome.findByPrimaryKeyIDO(Integer.valueOf(userId));
+
+	    	BuilderLogic builderLogic = BuilderLogic.getInstance();
+	    	ICPage homePage = builderLogic.getUsersHomePage(user);
+	    	return homePage == null ? null : CoreConstants.PAGES_URI_PREFIX + homePage.getDefaultPageURI();
+    	} catch (Exception e) {
+    		getLogger().log(Level.WARNING, "Error getting home page for user " + userId, e);
+    	}
+
+    	return null;
     }
 
     private String getUserIdByLogin(String username) {

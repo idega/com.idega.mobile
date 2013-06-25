@@ -34,6 +34,7 @@ import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.bean.Subscription;
+import com.idega.mobile.business.ExternalLoginService;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsCenter;
@@ -61,6 +62,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 	@Autowired
 	private NotificationsCenter notificationsCenter;
+	
+	@Autowired 
+	private ExternalLoginService externalLoginService;
 
     @Override
 	@GET
@@ -71,6 +75,11 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     		@QueryParam("password") String password,
     		@QueryParam("type") String type
     ) {
+    	
+    	if (MobileConstants.LOGIN_TYPE_FACEBOOK.equals(type)) {
+    		getExternalLoginService().loginByFacebookAccount(username, password);
+    	}
+    	
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
     		message = "User name or password is not provided";
@@ -87,6 +96,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	    	if (StringUtil.isEmpty(userId))
 	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
 
+	    	
 	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
 	    	String sessionId = session.getId();
 	    	if (login.isLoggedOn(request)) {
@@ -409,4 +419,11 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
 
+	protected ExternalLoginService getExternalLoginService() {
+		if (this.externalLoginService == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		
+		return this.externalLoginService;
+	}
 }

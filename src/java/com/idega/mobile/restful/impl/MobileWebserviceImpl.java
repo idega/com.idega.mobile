@@ -25,8 +25,6 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.idega.block.oauth2.client.business.FacebookLoginService;
-import com.idega.block.oauth2.client.business.GoogleLoginService;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;
@@ -55,8 +53,8 @@ import com.idega.util.expression.ELUtil;
 @Path(MobileConstants.URI)
 public class MobileWebserviceImpl extends DefaultRestfulService implements MobileWebservice {
 
-	@Autowired
-	private GoogleLoginService googleLoginService;
+//	@Autowired
+//	private GoogleLoginService googleLoginService;
 	
 	@Autowired
 	private IWHttpSessionsManager httpSessionsManager;
@@ -67,8 +65,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Autowired
 	private NotificationsCenter notificationsCenter;
 	
-	@Autowired 
-	private FacebookLoginService externalLoginService;
+//	@Autowired 
+//	private FacebookLoginService externalLoginService;
 
     @Override
 	@GET
@@ -82,7 +80,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 //    	getGoogleLoginService().login(null, null);
     	
 //    	if (MobileConstants.LOGIN_TYPE_FACEBOOK.equals(type)) {
-    		getExternalLoginService().loginByFacebookAccount(username, password);
+//    		getExternalLoginService().loginByFacebookAccount(username, password);
 //    	}
     	
         String message = null;
@@ -424,19 +422,19 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
 
-	protected FacebookLoginService getExternalLoginService() {
-		if (this.externalLoginService == null) {
-			ELUtil.getInstance().autowire(this);
-		}
-		
-		return this.externalLoginService;
-	}
-	
-	protected GoogleLoginService getGoogleLoginService() {
-		if (this.googleLoginService == null) {
-			ELUtil.getInstance().autowire(this);
-		}
-		
-		return this.googleLoginService;
-	}
+//	protected FacebookLoginService getExternalLoginService() {
+//		if (this.externalLoginService == null) {
+//			ELUtil.getInstance().autowire(this);
+//		}
+//		
+//		return this.externalLoginService;
+//	}
+//	
+//	protected GoogleLoginService getGoogleLoginService() {
+//		if (this.googleLoginService == null) {
+//			ELUtil.getInstance().autowire(this);
+//		}
+//		
+//		return this.googleLoginService;
+//	}
 }

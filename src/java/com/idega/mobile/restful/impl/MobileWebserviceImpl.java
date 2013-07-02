@@ -25,6 +25,8 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.idega.block.login.business.FacebookLoginService;
+import com.idega.block.login.business.GoogleLoginService;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;
@@ -34,7 +36,6 @@ import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.bean.Subscription;
-import com.idega.mobile.business.ExternalLoginService;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsCenter;
@@ -55,6 +56,9 @@ import com.idega.util.expression.ELUtil;
 public class MobileWebserviceImpl extends DefaultRestfulService implements MobileWebservice {
 
 	@Autowired
+	private GoogleLoginService googleLoginService;
+	
+	@Autowired
 	private IWHttpSessionsManager httpSessionsManager;
 
 	@Autowired
@@ -64,7 +68,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	private NotificationsCenter notificationsCenter;
 	
 	@Autowired 
-	private ExternalLoginService externalLoginService;
+	private FacebookLoginService externalLoginService;
 
     @Override
 	@GET
@@ -75,10 +79,11 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     		@QueryParam("password") String password,
     		@QueryParam("type") String type
     ) {
+//    	getGoogleLoginService().login(null, null);
     	
-    	if (MobileConstants.LOGIN_TYPE_FACEBOOK.equals(type)) {
+//    	if (MobileConstants.LOGIN_TYPE_FACEBOOK.equals(type)) {
     		getExternalLoginService().loginByFacebookAccount(username, password);
-    	}
+//    	}
     	
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
@@ -419,11 +424,19 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
 
-	protected ExternalLoginService getExternalLoginService() {
+	protected FacebookLoginService getExternalLoginService() {
 		if (this.externalLoginService == null) {
 			ELUtil.getInstance().autowire(this);
 		}
 		
 		return this.externalLoginService;
+	}
+	
+	protected GoogleLoginService getGoogleLoginService() {
+		if (this.googleLoginService == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		
+		return this.googleLoginService;
 	}
 }

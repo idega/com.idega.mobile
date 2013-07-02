@@ -25,8 +25,8 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.idega.block.login.business.FacebookLoginService;
-import com.idega.block.login.business.GoogleLoginService;
+import com.idega.block.oauth2.client.business.FacebookLoginService;
+import com.idega.block.oauth2.client.business.GoogleLoginService;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
 import com.idega.core.file.util.MimeTypeUtil;

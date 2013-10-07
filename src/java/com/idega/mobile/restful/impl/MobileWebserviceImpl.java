@@ -77,12 +77,6 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     		@QueryParam("password") String password,
     		@QueryParam("type") String type
     ) {
-//    	getGoogleLoginService().login(null, null);
-    	
-//    	if (MobileConstants.LOGIN_TYPE_FACEBOOK.equals(type)) {
-//    		getExternalLoginService().loginByFacebookAccount(username, password);
-//    	}
-    	
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
     		message = "User name or password is not provided";

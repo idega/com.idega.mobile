@@ -18,6 +18,15 @@ public interface MobileWebservice {
 	public Response doLogin(String username, String password, String type);
 
 	/**
+	 * Logs in user via bank
+	 *
+	 * @param personalId
+	 * @param country - ISO 3166-1 code
+	 * @return Response to the request ({@link LoginResult}) about the attempt to login
+	 */
+	public Response doBankLogin(String personalId, String country);
+
+	/**
 	 * Logs out user. GET: /mobile/logout
 	 *
 	 * @param username

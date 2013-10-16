@@ -27,6 +27,7 @@ public class MobileConstants {
 								PARAM_URL = "url",
 								PARAM_USER_ID = "userId",
 								PARAM_NOTIFY_ON = "notifyOn",
+								PARAM_PERSONAL_ID = "personalId",
 
 								LOGIN_TYPE_FACEBOOK = "facebook",
 								LOGIN_TYPE_BANK = "bank";

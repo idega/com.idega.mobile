@@ -423,7 +423,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response doBankLogin(
-			@QueryParam(MobileConstants.PARAM_USER_ID) String personalId,
+			@QueryParam(MobileConstants.PARAM_PERSONAL_ID) String personalId,
 			@QueryParam(MobileConstants.PARAM_COUNTRY) String country
 	) {
     	if (StringUtil.isEmpty(personalId) || StringUtil.isEmpty(country)) {

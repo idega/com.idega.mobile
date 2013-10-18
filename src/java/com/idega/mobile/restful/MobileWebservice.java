@@ -27,6 +27,16 @@ public interface MobileWebservice {
 	public Response doBankLogin(String personalId, String country);
 
 	/**
+	 * Checks if user has logged in via BankID
+	 *
+	 * @param personalId
+	 * @param country - ISO 3166-1 code
+	 * @param orderRef
+	 * @return
+	 */
+	public Response isLoggedInViaBankId(String personalId, String country, String orderRef);
+
+	/**
 	 * Logs out user. GET: /mobile/logout
 	 *
 	 * @param username

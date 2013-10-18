@@ -17,6 +17,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -25,6 +26,7 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.idega.block.login.bean.BankLoginInfo;
 import com.idega.block.login.business.BankIDLogin;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
@@ -439,13 +441,14 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
         		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     		}
 
-    		User user = getUser(personalId);
+    		User user = getUser(personalId, true);
     		if (user == null) {
         		getLogger().warning("Unable to create get/create user by personal ID: " + personalId);
         		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     		}
 
-    		if (bankIdLoginByCountry.doLogin(personalId)) {
+    		BankLoginInfo info = bankIdLoginByCountry.doLogin(personalId);
+    		if (info != null && info.isSuccess()) {
     			IWContext iwc = CoreUtil.getIWContext();
     			HttpServletRequest request = iwc.getRequest();
     	    	HttpSession session = request.getSession();
@@ -464,7 +467,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	    			new LoginResult(
     	    					success,
     	    					success ? sessionId : null,
-    	    					success ? userId : null
+    	    					success ? userId : null,
+    	    					success ? info.getOrderRef() : null
     	    			)
     	    	);
     		}
@@ -475,6 +479,41 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     		getLogger().log(Level.WARNING, "Error while trying to login via bank ID. Personal ID: " + personalId + ", country: " + country, e);
     		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     	}
+	}
+
+	@Override
+	@GET
+	@Path(MobileConstants.URI_BANK_ID_LOGIN + "/{orderRef}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response isLoggedInViaBankId(
+			@QueryParam(MobileConstants.PARAM_PERSONAL_ID) String personalId,
+			@QueryParam(MobileConstants.PARAM_COUNTRY) String country,
+			@PathParam("orderRef") String orderRef
+	) {
+		if (StringUtil.isEmpty(personalId) || StringUtil.isEmpty(country) || StringUtil.isEmpty(orderRef)) {
+    		getLogger().warning("Personal ID, country or order ref. are not provided");
+        	return getResponse(Response.Status.UNAUTHORIZED, Boolean.FALSE);
+    	}
+
+		try {
+    		country = country.toUpperCase();
+    		BankIDLogin bankIdLoginByCountry = ELUtil.getInstance().getBean(BankIDLogin.BEAN_NAME_PREFIX + country);
+    		if (bankIdLoginByCountry == null) {
+        		getLogger().warning("There is no implementation of BankID login for country by code: " + country + ". Personal ID: " + personalId);
+        		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
+    		}
+
+    		Boolean loggedIn = bankIdLoginByCountry.isLoggedIn(personalId, orderRef);
+    		return getResponse(
+    				loggedIn ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED,
+	    			loggedIn ? Boolean.TRUE : Boolean.FALSE
+	    	);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error while verifying whether person by ID " + personalId + " has logged in via BankID (order ref.: " +
+					orderRef +"). Country: " + country, e);
+		}
+		return getResponse(Response.Status.UNAUTHORIZED, Boolean.FALSE);
 	}
 
 }

@@ -31,6 +31,7 @@ public class NotificationsCenter extends DefaultSpringBean {
 	private MobileDAO mobileDAO;
 
 	private Collection<NotificationsSender> getNotificationsSenders() {
+		@SuppressWarnings("unchecked")
 		Map<String, NotificationsSender> senders = WebApplicationContextUtils.getWebApplicationContext(getApplication().getServletContext())
 				.getBeansOfType(NotificationsSender.class);
 

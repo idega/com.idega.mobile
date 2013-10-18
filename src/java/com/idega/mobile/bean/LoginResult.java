@@ -14,7 +14,7 @@ public class LoginResult implements Serializable {
 
 	private boolean success;
 
-	private String sessionId, userId;
+	private String sessionId, userId, orderRef;
 
 	public LoginResult() {
 		super();
@@ -36,6 +36,12 @@ public class LoginResult implements Serializable {
 		this(success, sessionId);
 
 		this.userId = userId;
+	}
+
+	public LoginResult(boolean success, String sessionId, String userId, String orderRef) {
+		this(success, sessionId, userId);
+
+		this.orderRef = orderRef;
 	}
 
 	public boolean isSuccess() {
@@ -60,6 +66,14 @@ public class LoginResult implements Serializable {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getOrderRef() {
+		return orderRef;
+	}
+
+	public void setOrderRef(String orderRef) {
+		this.orderRef = orderRef;
 	}
 
 }

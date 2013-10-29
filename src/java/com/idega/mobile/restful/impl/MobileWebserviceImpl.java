@@ -474,7 +474,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     		}
 
     		getLogger().warning("Unable to login via BankID with personal ID: " + personalId + " and country: " + country);
-    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
+    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE, null, null, info == null ? null : info.getOrderRef()));
     	} catch (Exception e) {
     		getLogger().log(Level.WARNING, "Error while trying to login via bank ID. Personal ID: " + personalId + ", country: " + country, e);
     		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));

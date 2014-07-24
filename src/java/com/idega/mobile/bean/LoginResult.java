@@ -21,7 +21,7 @@ public class LoginResult implements Serializable {
 
 	private boolean success;
 
-	private String sessionId, userId, orderRef, homePage;
+	private String sessionId, userId, orderRef, homePage, apiKey;
 
 	public LoginResult() {
 		super();
@@ -33,20 +33,21 @@ public class LoginResult implements Serializable {
 		this.success = success;
 	}
 
-	public LoginResult(boolean success, String sessionId) {
+	private LoginResult(boolean success, String sessionId) {
 		this(success);
 
 		this.sessionId = sessionId;
 	}
 
-	public LoginResult(boolean success, String sessionId, String userId) {
+	public LoginResult(boolean success, String sessionId, String userId, String apiKey) {
 		this(success, sessionId);
 
 		this.userId = userId;
+		this.apiKey = apiKey;
 	}
 
-	public LoginResult(boolean success, String sessionId, String userId, String orderRef, String homePage) {
-		this(success, sessionId, userId);
+	public LoginResult(boolean success, String sessionId, String userId, String orderRef, String homePage, String apiKey) {
+		this(success, sessionId, userId, apiKey);
 
 		this.orderRef = orderRef;
 		this.homePage = homePage;
@@ -90,6 +91,14 @@ public class LoginResult implements Serializable {
 
 	public void setOrderRef(String orderRef) {
 		this.orderRef = orderRef;
+	}
+
+	public String getApiKey() {
+		return apiKey;
+	}
+
+	public void setApiKey(String apiKey) {
+		this.apiKey = apiKey;
 	}
 
 }

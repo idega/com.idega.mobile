@@ -23,6 +23,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,7 @@ import com.idega.mobile.bean.PayloadData;
 import com.idega.mobile.bean.Subscription;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
+import com.idega.mobile.event.MobileLoginEvent;
 import com.idega.mobile.notifications.NotificationsCenter;
 import com.idega.mobile.restful.MobileWebservice;
 import com.idega.presentation.IWContext;
@@ -81,9 +83,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     ) {
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
-    		message = "User name or password is not provided";
+    		message = "User name (" + username + ") or password (" + password + ") is not provided";
     		getLogger().warning(message);
-        	return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(false));
+        	return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     	}
 
     	try {
@@ -92,32 +94,43 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	    	HttpSession session = request.getSession();
 
 	    	String userId = getUserIdByLogin(username);
-	    	if (StringUtil.isEmpty(userId))
+	    	if (StringUtil.isEmpty(userId)) {
 	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
-
+	    	}
 
 	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
 	    	String sessionId = session.getId();
 	    	if (login.isLoggedOn(request)) {
 	    		message = "User " + username + " is already logged in";
 	    		getLogger().info(message);
-	    		return getResponse(Response.Status.ACCEPTED, new LoginResult(Boolean.TRUE, sessionId, userId, null, getUserHomePage(userId)));
+	    		LoginResult result = new LoginResult(Boolean.TRUE, sessionId, userId, null, getUserHomePage(userId), getApiKey(userId));
+	    		try {
+	    			return getResponse(Response.Status.ACCEPTED, result);
+	    		} finally {
+	    			ELUtil.getInstance().publishEvent(new MobileLoginEvent(result));
+	    		}
 	    	}
 
 	    	boolean success = login.logInUser(request, username, password);
 	    	String homePage = null;
-	    	if (success)
+	    	if (success) {
 	    		homePage = getUserHomePage(userId);
-	    	return getResponse(
-	    			success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED,
-	    			new LoginResult(
-	    					success,
-	    					success ? sessionId : null,
-	    					success ? userId : null,
-	    					null,
-	    					homePage
-	    			)
-	    	);
+	    	}
+	    	LoginResult result = new LoginResult(
+					success,
+					success ? sessionId : null,
+					success ? userId : null,
+					null,
+					homePage,
+					success ? getApiKey(userId) : null
+			);
+	    	try {
+		    	return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, result);
+	    	} finally {
+	    		if (success) {
+	    			ELUtil.getInstance().publishEvent(new MobileLoginEvent(result));
+	    		}
+	    	}
     	} catch (Exception e) {
     		message = "Error while trying to login user " + username;
     		getLogger().log(Level.WARNING, message, e);
@@ -259,7 +272,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		}
 
 		try {
-			HttpSession session = CoreUtil.getIWContext().getRequest().getSession(false);
+			HttpSession session = CoreUtil.getIWContext().getRequest().getSession(Boolean.FALSE);
 			String sessionIdFromRequest = session == null ? CoreConstants.EMPTY : session.getId();
 			if (getSessionsManager().isSessionValid(httpSessionId) && httpSessionId.equals(sessionIdFromRequest))
 				return getResponse(Response.Status.OK, "Session is valid");
@@ -383,7 +396,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 				return getResponse(Response.Status.BAD_REQUEST, "User can not be found by ID: " + userId);
 			Integer usrId = Integer.valueOf(user.getId());
 
-			boolean success = false;
+			boolean success = Boolean.FALSE;
 			subscribing = subscription.isSubscribe();
 			if (subscribing != null && subscribing) {
 				Locale locale = LocaleUtil.getLocale(subscription.getLocaleId());
@@ -453,6 +466,19 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, message);
 	}
 
+	protected String getApiKey(String userId) {
+		return getApiKey(getUser(userId));
+	}
+
+	protected String getApiKey(User user) {
+		try {
+			return new String(Base64.encodeBase64(user.getUniqueId().getBytes(CoreConstants.ENCODING_UTF8)), CoreConstants.ENCODING_UTF8);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error encoding user's unique ID: " + user, e);
+		}
+		return null;
+	}
+
 	@Override
 	@GET
 	@Path(MobileConstants.URI_BANK_ID_LOGIN)
@@ -464,7 +490,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	) {
     	if (StringUtil.isEmpty(personalId) || StringUtil.isEmpty(country)) {
     		getLogger().warning("Personal ID or country are not provided");
-        	return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(false));
+        	return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
     	}
 
     	try {
@@ -492,25 +518,35 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     			String sessionId = session.getId();
     	    	if (login.isLoggedOn(request)) {
     	    		getLogger().info("User by personal ID " + personalId + " is already logged in");
-    	    		return getResponse(Response.Status.ACCEPTED, new LoginResult(Boolean.TRUE, sessionId, userId));
+    	    		LoginResult result = new LoginResult(Boolean.TRUE, sessionId, userId, getApiKey(user));
+    	    		try {
+    	    			return getResponse(Response.Status.ACCEPTED, result);
+    	    		} finally {
+    	    			ELUtil.getInstance().publishEvent(new MobileLoginEvent(result));
+    	    		}
     	    	}
 
     	    	boolean success = login.logInByPersonalID(request, personalId);
     	    	String homePage = success ? getUserHomePage(userId) : null;
-    	    	return getResponse(
-    	    			success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED,
-    	    			new LoginResult(
-    	    					success,
-    	    					success ? sessionId : null,
-    	    					success ? userId : null,
-    	    					success ? info.getOrderRef() : null,
-    	    					homePage
-    	    			)
-    	    	);
+    	    	LoginResult result = new LoginResult(
+    					success,
+    					success ? sessionId : null,
+    					success ? userId : null,
+    					success ? info.getOrderRef() : null,
+    					homePage,
+    					success ? getApiKey(user) : null
+    			);
+    	    	try {
+    	    		return getResponse(success ? Response.Status.ACCEPTED : Response.Status.UNAUTHORIZED, result);
+	    		} finally {
+	    			if (success) {
+	    				ELUtil.getInstance().publishEvent(new MobileLoginEvent(result));
+	    			}
+	    		}
     		}
 
     		getLogger().warning("Unable to login via BankID with personal ID: " + personalId + " and country: " + country);
-    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE, null, null, info == null ? null : info.getOrderRef(), null));
+    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE, null, null, info == null ? null : info.getOrderRef(), null, null));
     	} catch (Exception e) {
     		getLogger().log(Level.WARNING, "Error while trying to login via bank ID. Personal ID: " + personalId + ", country: " + country, e);
     		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));

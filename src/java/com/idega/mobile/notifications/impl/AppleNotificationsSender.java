@@ -33,9 +33,7 @@ import com.idega.util.datastructures.map.MapUtil;
 public class AppleNotificationsSender extends NotificationsSender {
 
 	@Override
-	public boolean doSendNotification(Notification notification, Map<Locale, String> messages,
-			Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
-
+	public boolean doSendNotification(Notification notification, Map<Locale, String> messages, Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
 		//	Settings
 		IWMainApplicationSettings settings = getApplication().getSettings();
 		boolean production = settings.getBoolean("ios_push_production", !isDevelopementState());

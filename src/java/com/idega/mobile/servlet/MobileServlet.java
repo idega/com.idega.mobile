@@ -10,9 +10,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.idega.restful.servlet.DefaulRestfulServlet;
+import com.idega.restful.servlet.DefaultRestfulServlet;
 
-public class MobileServlet extends DefaulRestfulServlet {
+public class MobileServlet extends DefaultRestfulServlet {
 
 	private static final long serialVersionUID = 4850774197754007944L;
 

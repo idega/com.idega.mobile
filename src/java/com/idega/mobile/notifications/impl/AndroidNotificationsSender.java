@@ -31,9 +31,7 @@ import com.idega.util.datastructures.map.MapUtil;
 public class AndroidNotificationsSender extends NotificationsSender {
 
 	@Override
-	public boolean doSendNotification(Notification notification, Map<Locale, String> messages,
-			Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
-
+	public boolean doSendNotification(Notification notification, Map<Locale, String> messages, Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
 		IWMainApplicationSettings settings = getApplication().getSettings();
 		String apiKey = settings.getProperty("google_api_key");
 		if (StringUtil.isEmpty(apiKey)) {
@@ -50,18 +48,26 @@ public class AndroidNotificationsSender extends NotificationsSender {
 			Sender sender = new Sender(apiKey);
 			for (Locale locale: groupedSubscriptions.keySet()) {
 				List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
-				if (ListUtil.isEmpty(localizedSubscriptions))
+				if (ListUtil.isEmpty(localizedSubscriptions)) {
+					getLogger().warning("There is no localized subsciption for locale " + locale + ". All subscriptions: " + groupedSubscriptions + ", messages: " + messages + ", notification: " + notification);
 					continue;
+				}
 
 				String msg = messages.get(locale);
-				if (StringUtil.isEmpty(msg))
+				if (StringUtil.isEmpty(msg)) {
+					getLogger().warning("There is no message for locale " + locale + ". All messages: " + messages + ", subscriptions: " + groupedSubscriptions + ", notification: " + notification);
 					continue;
+				}
 
 				devices = new ArrayList<String>();
-				for (NotificationSubscription subscription: localizedSubscriptions)
+				for (NotificationSubscription subscription: localizedSubscriptions) {
 					devices.add(subscription.getToken());
-				if (ListUtil.isEmpty(devices))
+				}
+				if (ListUtil.isEmpty(devices)) {
+					getLogger().warning("There are no devices for message " + msg + ". All messages: " + messages + ", localized subscriptions: " + localizedSubscriptions + ", notification: " + notification +
+							", locale: " + locale);
 					continue;
+				}
 
 				Builder msgBuilder = new Message.Builder();
 				Map<String, String> data = notification.getDictionaries();
@@ -73,20 +79,25 @@ public class AndroidNotificationsSender extends NotificationsSender {
 				msgBuilder.addData("alert", msg);
 				message = msgBuilder.build();
 
+				getLogger().info("Sending message " + message + " to devices " + devices + ", retries: " + retries + ". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " +
+						localizedSubscriptions);
+
 				multicastResult = sender.send(message, devices, retries);
 
 				List<Result> results = multicastResult.getResults();
-				if (!ListUtil.isEmpty(results)) {
+				if (ListUtil.isEmpty(results)) {
+					getLogger().warning("There are no results");
+				} else {
 					for (Result result: results) {
 						if (result.getMessageId() != null) {
 							String canonicalRegId = result.getCanonicalRegistrationId();
 							if (canonicalRegId != null) {
-								// same device has more than one registration ID: update database
+								getLogger().warning("Same device has more than one registration ID: update database");
 							}
 						} else {
 							String error = result.getErrorCodeName();
 							if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-								// application has been removed from device - unregister database
+								getLogger().warning("Application has been removed from device - unregister database");
 							}
 						}
 					}

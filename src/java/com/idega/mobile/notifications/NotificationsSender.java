@@ -90,4 +90,9 @@ public abstract class NotificationsSender extends DefaultSpringBean {
 
 		return msg;
 	}
+
+	protected boolean isNeededToInformAboutNotificationToSend() {
+		return getSettings().getBoolean("push_notif.print_msg_to_send", false);
+	}
+
 }

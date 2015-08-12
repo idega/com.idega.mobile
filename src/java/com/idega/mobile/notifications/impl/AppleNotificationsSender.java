@@ -77,8 +77,9 @@ public class AppleNotificationsSender extends NotificationsSender {
 			}
 
 			List<String> devices = new ArrayList<String>();
-			for (NotificationSubscription subscription: localizedSubscriptions)
+			for (NotificationSubscription subscription: localizedSubscriptions) {
 				devices.add(subscription.getToken());
+			}
 			if (ListUtil.isEmpty(devices)) {
 				getLogger().warning("There are no tokens for localized subscriptions: " + localizedSubscriptions);
 				continue;
@@ -86,17 +87,22 @@ public class AppleNotificationsSender extends NotificationsSender {
 
 			PushedNotifications sent = null;
 			try {
-				getLogger().info("Sending message '" + message + "' to device(s): " + devices + ". Subscriptions: " + localizedSubscriptions);
+				if (isNeededToInformAboutNotificationToSend()) {
+					getLogger().info("Sending message " + message + " to devices " + devices + ". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " +
+							localizedSubscriptions);
+				}
 
 				if (settings.getBoolean("notification_send_test", Boolean.FALSE)) {
 					sent = Push.test(keystore, password, production, devices);
 				} else {
 					PushNotificationPayload payload = PushNotificationPayload.complex();
 					payload.addAlert(message);
-					if (badge != -1)
+					if (badge != -1) {
 						payload.addBadge(badge);
-					if (!StringUtil.isEmpty(sound))
+					}
+					if (!StringUtil.isEmpty(sound)) {
 						payload.addSound(sound);
+					}
 					payload.addCustomDictionary("id", new Random().nextInt(Integer.MAX_VALUE));
 					Map<String, String> dictionaries = notification.getDictionaries();
 					if (!MapUtil.isEmpty(dictionaries)) {
@@ -117,12 +123,29 @@ public class AppleNotificationsSender extends NotificationsSender {
 				getLogger().log(Level.WARNING, errorMessage, e);
 				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				String errorMessage = "Error sending message '" + message + "' to devices " + devices;
 				getLogger().log(Level.WARNING, errorMessage, e);
 				CoreUtil.sendExceptionNotification(errorMessage, e);
 				return false;
 			} finally {
+				doPrintResults(sent, message, devices, notification, messages, groupedSubscriptions);
+			}
+		}
+
+		return true;
+	}
+
+	private void doPrintResults(
+			PushedNotifications sent,
+			String message,
+			List<String> devices,
+			Notification notification,
+			Map<Locale, String> messages,
+			Map<Locale, List<NotificationSubscription>> groupedSubscriptions
+	) {
+		try {
+			if (getSettings().getBoolean("push_notif.ios_print_results", false)) {
 				if (sent == null) {
 					getLogger().warning("Failed to sent notification " + message + " for devices " + devices);
 				} else {
@@ -136,9 +159,9 @@ public class AppleNotificationsSender extends NotificationsSender {
 					}
 				}
 			}
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error notifying about result of sent notification. Sent message " + message + " to devices " + devices + ". Notification: " + notification, e);
 		}
-
-		return true;
 	}
 
 	@Override

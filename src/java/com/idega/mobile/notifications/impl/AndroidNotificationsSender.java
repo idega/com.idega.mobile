@@ -12,15 +12,16 @@ import org.springframework.stereotype.Service;
 
 import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.Message.Builder;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
-import com.google.android.gcm.server.Message.Builder;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.NotificationSubscription;
 import com.idega.mobile.notifications.NotificationsSender;
+import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -79,25 +80,35 @@ public class AndroidNotificationsSender extends NotificationsSender {
 				msgBuilder.addData("alert", msg);
 				message = msgBuilder.build();
 
-				getLogger().info("Sending message " + message + " to devices " + devices + ", retries: " + retries + ". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " +
-						localizedSubscriptions);
+				if (isNeededToInformAboutNotificationToSend()) {
+					getLogger().info("Sending message " + message + " to devices " + devices + ", retries: " + retries + ". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " +
+							localizedSubscriptions);
+				}
 
 				multicastResult = sender.send(message, devices, retries);
 
+				if (getSettings().getBoolean("push_notif.android_print_results", false)) {
+					getLogger().info("Succeeded: " + multicastResult.getSuccess() + (multicastResult.getFailure() > 0 ? ", failed: " + multicastResult.getFailure() + ", total: " +
+							multicastResult.getTotal() : CoreConstants.EMPTY) + ". Sent message " + message + " to devices " + devices);
+				}
+
 				List<Result> results = multicastResult.getResults();
 				if (ListUtil.isEmpty(results)) {
-					getLogger().warning("There are no results");
+					getLogger().warning("There are no results. Sent message " + message + " to devices " + devices + ", retries: " + retries + ". Notification: " + notification + ", locale: " + locale +
+							", localized subscriptions: " + localizedSubscriptions);
 				} else {
 					for (Result result: results) {
 						if (result.getMessageId() != null) {
 							String canonicalRegId = result.getCanonicalRegistrationId();
 							if (canonicalRegId != null) {
-								getLogger().warning("Same device has more than one registration ID: update database");
+								getLogger().warning("Same device has more than one registration ID: update database. Sent message " + message + " to devices " + devices + ", retries: " + retries +
+										". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " + localizedSubscriptions);
 							}
 						} else {
 							String error = result.getErrorCodeName();
 							if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-								getLogger().warning("Application has been removed from device - unregister database");
+								getLogger().warning("Application has been removed from device - unregister database. Sent message " + message + " to devices " + devices + ", retries: " + retries +
+										". Notification: " + notification + ", locale: " + locale + ", localized subscriptions: " + localizedSubscriptions);
 							}
 						}
 					}

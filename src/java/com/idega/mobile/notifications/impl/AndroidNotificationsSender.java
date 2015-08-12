@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 
 import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
-import com.google.android.gcm.server.Message.Builder;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
+import com.google.android.gcm.server.Message.Builder;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
@@ -33,7 +33,7 @@ public class AndroidNotificationsSender extends NotificationsSender {
 	@Override
 	public boolean doSendNotification(Notification notification, Map<Locale, String> messages, Map<Locale, List<NotificationSubscription>> groupedSubscriptions) {
 		IWMainApplicationSettings settings = getApplication().getSettings();
-		String apiKey = settings.getProperty("google_api_key");
+		String apiKey = settings.getProperty("google_notifications_api_key");
 		if (StringUtil.isEmpty(apiKey)) {
 			getLogger().warning("Google's API key is not provided");
 			return false;
@@ -47,15 +47,15 @@ public class AndroidNotificationsSender extends NotificationsSender {
 		try {
 			Sender sender = new Sender(apiKey);
 			for (Locale locale: groupedSubscriptions.keySet()) {
-				List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
-				if (ListUtil.isEmpty(localizedSubscriptions)) {
-					getLogger().warning("There is no localized subsciption for locale " + locale + ". All subscriptions: " + groupedSubscriptions + ", messages: " + messages + ", notification: " + notification);
+				String msg = getMessage(notification, messages, locale, groupedSubscriptions.get(locale));
+				if (StringUtil.isEmpty(msg)) {
+					getLogger().warning("There is no message for locale " + locale + ". All messages: " + messages + ", subscriptions: " + groupedSubscriptions + ", notification: " + notification);
 					continue;
 				}
 
-				String msg = messages.get(locale);
-				if (StringUtil.isEmpty(msg)) {
-					getLogger().warning("There is no message for locale " + locale + ". All messages: " + messages + ", subscriptions: " + groupedSubscriptions + ", notification: " + notification);
+				List<NotificationSubscription> localizedSubscriptions = groupedSubscriptions.get(locale);
+				if (ListUtil.isEmpty(localizedSubscriptions)) {
+					getLogger().warning("There is no localized subsciption for locale " + locale + ". All subscriptions: " + groupedSubscriptions + ", messages: " + messages + ", notification: " + notification);
 					continue;
 				}
 

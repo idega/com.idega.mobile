@@ -48,7 +48,7 @@ public class AppleNotificationsSender extends NotificationsSender {
 			return false;
 		}
 		String password = getPassword();
-		if (StringUtil.isEmpty(password)) {
+		if (password == null) {
 			getLogger().warning("Password for keystore is invalid");
 			return false;
 		}
@@ -70,7 +70,7 @@ public class AppleNotificationsSender extends NotificationsSender {
 				continue;
 			}
 
-			String message = messages.get(locale);
+			String message = getMessage(notification, messages, locale, localizedSubscriptions);
 			if (StringUtil.isEmpty(message)) {
 				getLogger().warning("Message is not provided for locale " + locale + ". All messages: " + messages);
 				continue;

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import com.idega.block.login.bean.BankLoginInfo;
 import com.idega.block.login.business.BankIDLogin;
+import com.idega.block.login.business.OAuth2Service;
 import com.idega.builder.business.BuilderLogic;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
@@ -170,6 +171,30 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
     	return id == null ? null : String.valueOf(id);
     }
+
+    @Autowired
+    private OAuth2Service oauth2;
+
+    private OAuth2Service getOAuth2Service() {
+    	if (this.oauth2 == null) {
+    		ELUtil.getInstance().autowire(this);
+    	}
+
+    	return this.oauth2;
+    }
+    
+    @Override
+	@GET
+	@Path(MobileConstants.URI_GET_USER_HOME_PAGE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String getUserHomePage() {
+		com.idega.user.data.bean.User user = getOAuth2Service().getAuthenticatedUser();
+		if (user != null) {
+			return getUserHomePage(user.getId().toString());
+		}
+
+		return null;
+	}
 
     @Override
 	@GET

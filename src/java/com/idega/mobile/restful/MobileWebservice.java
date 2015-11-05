@@ -5,6 +5,7 @@ import javax.ws.rs.core.Response;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.PayloadData;
 import com.idega.mobile.bean.Subscription;
+import com.idega.user.data.User;
 
 public interface MobileWebservice {
 
@@ -78,4 +79,12 @@ public interface MobileWebservice {
 	 * @return
 	 */
 	public Response isSubscribed(String userId, String token, String notifyOn);
+
+	/**
+	 * 
+	 * <p>Webservice to get homepage of the {@link User}</p>
+	 * @return /pages/... or <code>null</code> on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	String getUserHomePage();
 }

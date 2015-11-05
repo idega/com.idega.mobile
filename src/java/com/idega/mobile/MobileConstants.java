@@ -14,6 +14,7 @@ public class MobileConstants {
 								URI_GET_REPOSITORY_ITEM = "/repository/item",
 								URI_NOTIFICATION = "/notification",
 								URI_SUBSCRIBE = "/subscribe",
+								URI_GET_USER_HOME_PAGE = "/user/homepage",
 
 								DEVICE_IOS = "iOS",
 								DEVICE_ANDROID = "Android",

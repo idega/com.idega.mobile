@@ -81,10 +81,10 @@ public interface MobileWebservice {
 	public Response isSubscribed(String userId, String token, String notifyOn);
 
 	/**
-	 * 
+	 *
 	 * <p>Webservice to get homepage of the {@link User}</p>
 	 * @return /pages/... or <code>null</code> on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	String getUserHomePage();
+	public Response getUserHomePage();
 }

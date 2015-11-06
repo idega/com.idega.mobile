@@ -182,16 +182,21 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
     	return this.oauth2;
     }
-    
+
     @Override
 	@GET
 	@Path(MobileConstants.URI_GET_USER_HOME_PAGE)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String getUserHomePage() {
-		com.idega.user.data.bean.User user = getOAuth2Service().getAuthenticatedUser();
-		if (user != null) {
-			return getUserHomePage(user.getId().toString());
-		}
+	public Response getUserHomePage() {
+    	try {
+			com.idega.user.data.bean.User user = getOAuth2Service().getAuthenticatedUser();
+			if (user != null) {
+				String homepage = getUserHomePage(user.getId().toString());
+				return getOKResponse(homepage);
+			}
+    	} catch (Exception e) {
+    		getLogger().log(Level.WARNING, "Error getting homepage for logged in user", e);
+    	}
 
 		return null;
 	}

@@ -172,7 +172,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	return id == null ? null : String.valueOf(id);
     }
 
-    @Autowired
+    @Autowired(required = false)
     private OAuth2Service oauth2;
 
     private OAuth2Service getOAuth2Service() {
@@ -189,7 +189,12 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response getUserHomePage() {
     	try {
-			com.idega.user.data.bean.User user = getOAuth2Service().getAuthenticatedUser();
+    		OAuth2Service oauthService = getOAuth2Service();
+    		if (oauthService == null) {
+    			return getInternalServerErrorResponse("Error resolving current user");
+    		}
+
+			com.idega.user.data.bean.User user = oauthService.getAuthenticatedUser();
 			if (user != null) {
 				String homepage = getUserHomePage(user.getId().toString());
 				return getOKResponse(homepage);

@@ -2,24 +2,34 @@ package com.idega.mobile.data;
 
 import java.io.Serializable;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Index;
-
 @Entity
-@Table(name=NotificationSubscription.TABLE)
+@Table(
+		name = NotificationSubscription.TABLE,
+		indexes = {
+				@Index(columnList = NotificationSubscription.userIdColumn, name = "userIdIndex"),
+				@Index(columnList = NotificationSubscription.tokenColumn, name = "tokenIndex"),
+				@Index(columnList = NotificationSubscription.localeColumn, name = "localeIndex"),
+				@Index(columnList = NotificationSubscription.subscribedOnColumn, name = "subscribedOnIndex"),
+				@Index(columnList = NotificationSubscription.deviceColumn, name = "deviceIndex")
+		}
+)
+@Cacheable
 public class NotificationSubscription implements Serializable {
 
 	private static final long serialVersionUID = 823309220497260027L;
 
-	public static final String TABLE = "notification_subscription";
+	public static final String TABLE = "notification_subscription",
 
-	public static final String userIdColumn = "user_id",
+								userIdColumn = "user_id",
 								tokenColumn = "token",
 								localeColumn = "locale",
 								subscribedOnColumn = "subscribed_on",
@@ -27,26 +37,22 @@ public class NotificationSubscription implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id")
 	private Long id;
 
 	@Column(name = userIdColumn)
-	@Index(columnNames = {userIdColumn}, name = "userIdIndex")
 	private Integer userId;
 
 	@Column(name = tokenColumn)
-	@Index(columnNames = {tokenColumn}, name = "tokenIndex")
 	private String token;
 
 	@Column(name = localeColumn)
-	@Index(columnNames = {localeColumn}, name = "localeIndex")
 	private String locale;
 
 	@Column(name = subscribedOnColumn)
-	@Index(columnNames = {subscribedOnColumn}, name = "subscribedOnIndex")
 	private String subscribedOn;
 
 	@Column(name = deviceColumn)
-	@Index(columnNames = {deviceColumn}, name = "deviceIndex")
 	private String device;
 
 	public Long getId() {

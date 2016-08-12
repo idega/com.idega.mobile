@@ -33,6 +33,8 @@ import com.idega.block.login.business.OAuth2Service;
 import com.idega.builder.business.BuilderLogic;
 import com.idega.core.accesscontrol.business.LoginBusinessBean;
 import com.idega.core.accesscontrol.business.LoginDBHandler;
+import com.idega.core.accesscontrol.dao.UserLoginDAO;
+import com.idega.core.accesscontrol.data.bean.UserLogin;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.localisation.business.ICLocaleBusiness;
@@ -96,12 +98,25 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 	    	String userId = getUserIdByLogin(username);
 	    	if (StringUtil.isEmpty(userId)) {
+	    		getLogger().warning("User can not be found by username " + username);
 	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
 	    	}
 
-	    	LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
+	    	UserLoginDAO userLoginDAO = ELUtil.getInstance().getBean(UserLoginDAO.class);
+	    	UserLogin userLogin = userLoginDAO.findLoginByUsername(username);
+	    	if (userLogin == null) {
+	    		getLogger().warning("Login not found by username " + username);
+	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
+	    	}
+
+	    	LoginBusinessBean loginBusinessBean = LoginBusinessBean.getLoginBusinessBean(request);
+	    	if (!loginBusinessBean.verifyPassword(userLogin, password)) {
+	    		getLogger().warning("Wrong password for username " + username);
+	    		return getResponse(Response.Status.UNAUTHORIZED, new LoginResult(Boolean.FALSE));
+	    	}
+
 	    	String sessionId = session.getId();
-	    	if (login.isLoggedOn(request)) {
+	    	if (loginBusinessBean.isLoggedOn(request)) {
 	    		message = "User " + username + " is already logged in";
 	    		getLogger().info(message);
 	    		LoginResult result = new LoginResult(Boolean.TRUE, sessionId, userId, null, getUserHomePage(userId), getApiKey(userId));
@@ -112,7 +127,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	    		}
 	    	}
 
-	    	boolean success = login.logInUser(request, username, password);
+	    	boolean success = loginBusinessBean.logInUser(request, username, password);
 	    	String homePage = null;
 	    	if (success) {
 	    		homePage = getUserHomePage(userId);

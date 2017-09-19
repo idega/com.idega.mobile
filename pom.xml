@@ -66,33 +66,6 @@
             <artifactId>com.idega.block.email</artifactId>
         </dependency>
 
-        <!-- RESTful Web Services -->
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>${com.sun.jersey-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
-            <version>${com.sun.jersey-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>${com.sun.jersey-version}</version>
-        </dependency>
-        <dependency>
-		    <groupId>com.sun.jersey.contribs</groupId>
-		    <artifactId>jersey-multipart</artifactId>
-		    <version>${com.sun.jersey-version}</version>
-		</dependency>
-		<dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${com.sun.jersey-version}</version>
-        </dependency>
-
         <!-- XML to JSON -->
         <dependency>
             <groupId>net.sf.json-lib</groupId>
@@ -115,13 +88,6 @@
 			<version>2.2</version>
 		</dependency>
         
-        <!-- Java RESTful Web Services -->
-        <dependency>
-	    	<groupId>javax.ws.rs</groupId>
-	    	<artifactId>jsr311-api</artifactId>
-	    	<version>${javax.ws.rs-version}</version>
-	    </dependency>
-	    
 	    <!-- Bouncy castle -->
 	    <dependency>
 			<groupId>org.bouncycastle</groupId>
@@ -140,7 +106,6 @@
 		<dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>${com-google-code-gson-version}</version>
         </dependency>
 		
     </dependencies>

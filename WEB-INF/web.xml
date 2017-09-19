@@ -7,7 +7,7 @@
         <servlet-name>Mobile RESTful Servlet</servlet-name>
         <servlet-class>com.idega.mobile.servlet.MobileServlet</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-name>org.glassfish.jersey.config.property.packages</param-name>
             <param-value>com.idega.mobile.restful</param-value>
         </init-param>
         <init-param>

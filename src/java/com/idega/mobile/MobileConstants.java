@@ -18,6 +18,7 @@ public class MobileConstants {
 
 								DEVICE_IOS = "iOS",
 								DEVICE_ANDROID = "Android",
+								DEVICE_SMS = "sms",
 
 								NOTIFY_ON_ALL = "all",
 

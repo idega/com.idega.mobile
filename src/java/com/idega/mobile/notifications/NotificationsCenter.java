@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.idega.core.business.DefaultSpringBean;
+import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.Notification;
 import com.idega.mobile.data.MobileDAO;
 import com.idega.mobile.data.NotificationSubscription;
@@ -34,10 +35,25 @@ public class NotificationsCenter extends DefaultSpringBean {
 	private Collection<NotificationsSender> getNotificationsSenders() {
 		Map<String, NotificationsSender> senders = getBeansOfType(NotificationsSender.class);
 
-		if (MapUtil.isEmpty(senders))
+		if (MapUtil.isEmpty(senders)) {
 			return Collections.emptyList();
+		}
 
 		return senders.values();
+	}
+
+	private Map<String, List<NotificationSubscription>> getSubscriptions(String mobilePhoneNumber) {
+		if (StringUtil.isEmpty(mobilePhoneNumber)) {
+			return null;
+		}
+
+		Map<String, List<NotificationSubscription>> subscriptions = new HashMap<>();
+		NotificationSubscription subscription = new NotificationSubscription();
+		subscription.setLocale(getCurrentLocale().toString());
+		subscription.setDevice(MobileConstants.DEVICE_SMS);
+		subscription.setToken(mobilePhoneNumber);
+		subscriptions.put(MobileConstants.DEVICE_SMS, Arrays.asList(subscription));
+		return subscriptions;
 	}
 
 	private Map<String, List<NotificationSubscription>> getSubscriptions(String notificationObject, Integer... subscribersToExclude) {
@@ -99,24 +115,36 @@ public class NotificationsCenter extends DefaultSpringBean {
 			return false;
 		}
 
-		Map<String, List<NotificationSubscription>> subscriptions = ListUtil.isEmpty(notification.getSubscriptions()) ?
-				getSubscriptions(notification.getNotifyOn(), notification.getExclusions()) :
-				getSubscriptions(notification.getSubscriptions());
+		Map<String, List<NotificationSubscription>> subscriptions = StringUtil.isEmpty(notification.getMobilePhoneNumber()) ?
+				ListUtil.isEmpty(notification.getSubscriptions()) ?
+						getSubscriptions(notification.getNotifyOn(), notification.getExclusions()) :
+						getSubscriptions(notification.getSubscriptions()) :
+				getSubscriptions(notification.getMobilePhoneNumber());
+
 		if (MapUtil.isEmpty(subscriptions)) {
 			getLogger().warning("No devices subscribed for " + notification);
 			return false;
 		}
 
 		Collection<NotificationsSender> senders = getNotificationsSenders();
-		if (ListUtil.isEmpty(senders))
+		if (ListUtil.isEmpty(senders)) {
+			getLogger().warning("There are no senders. Can not send notification " + notification);
 			return false;
+		}
 
+		boolean senderFound = false;
 		for (NotificationsSender sender: senders) {
 			List<NotificationSubscription> subscribers = subscriptions.get(sender.getSupportedDeviceType());
-			if (ListUtil.isEmpty(subscribers))
+			if (ListUtil.isEmpty(subscribers)) {
 				continue;
+			}
 
+			senderFound = true;
 			sender.doSendNotification(notification, subscribers);
+		}
+		if (!senderFound) {
+			getLogger().warning("No sender found in " + senders + " to send " + notification);
+			return false;
 		}
 
 		return true;

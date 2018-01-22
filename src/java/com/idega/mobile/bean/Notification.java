@@ -19,6 +19,8 @@ public class Notification {
 
 	private Map<String, String> dictionaries;
 
+	private String mobilePhoneNumber;
+
 	public Notification(Map<Locale, String> messages, List<NotificationSubscription> subscriptions) {
 		super();
 
@@ -30,6 +32,13 @@ public class Notification {
 		this(messages, subscriptions);
 
 		this.notifyOn = notifyOn;
+	}
+
+	public Notification(Map<Locale, String> messages, String mobilePhoneNumber) {
+		super();
+
+		this.messages = messages;
+		this.mobilePhoneNumber = mobilePhoneNumber;
 	}
 
 	public Integer[] getExclusions() {
@@ -78,9 +87,17 @@ public class Notification {
 		dictionaries.put(name, value);
 	}
 
+	public String getMobilePhoneNumber() {
+		return mobilePhoneNumber;
+	}
+
+	public void setMobilePhoneNumber(String mobilePhoneNumber) {
+		this.mobilePhoneNumber = mobilePhoneNumber;
+	}
+
 	@Override
 	public String toString() {
-		return "Notification on: " + getNotifyOn() + ", messages: " + getMessages() + ", receivers: " + getSubscriptions();
+		return "Notification on: " + getNotifyOn() + ", messages: " + getMessages() + ", receivers: " + getSubscriptions() + ", mobile phone number: " + getMobilePhoneNumber();
 	}
 
 }

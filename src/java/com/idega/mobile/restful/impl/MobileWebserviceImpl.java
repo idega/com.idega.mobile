@@ -10,7 +10,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,6 +22,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -174,8 +177,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     }
 
     private String getUserIdByLogin(String username) {
-    	if (StringUtil.isEmpty(username))
-    		return null;
+    	if (StringUtil.isEmpty(username)) {
+			return null;
+		}
 
     	Integer id = null;
     	try {
@@ -202,14 +206,19 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@GET
 	@Path(MobileConstants.URI_GET_USER_HOME_PAGE)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response getUserHomePage() {
+	public Response getUserHomePage(
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response,
+			@Context ServletContext context
+	) {
     	try {
+    		IWContext iwc = new IWContext(request, response, context);
     		OAuth2Service oauthService = getOAuth2Service();
     		if (oauthService == null) {
     			return getInternalServerErrorResponse("Error resolving current user");
     		}
 
-			com.idega.user.data.bean.User user = oauthService.getAuthenticatedUser();
+			com.idega.user.data.bean.User user = oauthService.getAuthenticatedUser(iwc);
 			if (user != null) {
 				String homepage = getUserHomePage(user.getId().toString());
 				return getOKResponse(homepage);
@@ -277,13 +286,15 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	}
 
 	private InputStream getStream(String path) throws Exception {
-		if (StringUtil.isEmpty(path))
+		if (StringUtil.isEmpty(path)) {
 			return null;
+		}
 
 		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
 			try {
-				if (getRepositoryService().getExistence(path))
+				if (getRepositoryService().getExistence(path)) {
 					return getRepositoryService().getInputStreamAsRoot(path);
+				}
 			} catch (Exception e) {
 				getLogger().log(Level.WARNING, "Error getting stream to " + path, e);
 			}
@@ -294,18 +305,21 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			if (path.startsWith(File.separator)) {
 				path = path.substring(1);
 				tmp = new File(path);
-				if (!tmp.exists() || !tmp.canRead())
+				if (!tmp.exists() || !tmp.canRead()) {
 					return null;
-			} else
+				}
+			} else {
 				return null;
+			}
 		}
 
 		return new FileInputStream(tmp);
 	}
 
 	private IWHttpSessionsManager getSessionsManager() {
-		if (httpSessionsManager == null)
+		if (httpSessionsManager == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 		return httpSessionsManager;
 	}
 
@@ -324,8 +338,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		try {
 			HttpSession session = CoreUtil.getIWContext().getRequest().getSession(Boolean.FALSE);
 			String sessionIdFromRequest = session == null ? CoreConstants.EMPTY : session.getId();
-			if (getSessionsManager().isSessionValid(httpSessionId) && httpSessionId.equals(sessionIdFromRequest))
+			if (getSessionsManager().isSessionValid(httpSessionId) && httpSessionId.equals(sessionIdFromRequest)) {
 				return getResponse(Response.Status.OK, "Session is valid");
+			}
 
 			message = "Session by ID " + httpSessionId + " is not valid: probably it has expired or is not the same as expected. " +
 					"Expected session ID: " + sessionIdFromRequest + ", got: " + httpSessionId;
@@ -339,14 +354,16 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	}
 
 	private MobileDAO getMobileDAO() {
-		if (mobileDAO == null)
+		if (mobileDAO == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 		return mobileDAO;
 	}
 
 	private NotificationsCenter getNotificationsCenter() {
-		if (notificationsCenter == null)
+		if (notificationsCenter == null) {
 			ELUtil.getInstance().autowire(this);
+		}
 		return notificationsCenter;
 	}
 
@@ -384,8 +401,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 				msg = "Notify on is not provided";
 				getLogger().warning(msg);
 				return getResponse(Response.Status.BAD_REQUEST, msg);
-			} else
+			} else {
 				data.setNotifyOn(notifyOn);
+			}
 		}
 
 		List<NotificationSubscription> subscriptions = getMobileDAO().getSubscriptions(Arrays.asList(data.getToken()), data.getNotifyOn());
@@ -403,8 +421,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(data.getLocale()), data.getMessage());
 		Notification notification = new Notification(messages, subscriptions);
 		notification.setNotifyOn(data.getNotifyOn());
-		if (getNotificationsCenter().doSendNotification(notification))
+		if (getNotificationsCenter().doSendNotification(notification)) {
 			return getResponse(Response.Status.OK, data.getToken());
+		}
 
 		return getResponse(Response.Status.INTERNAL_SERVER_ERROR, "Error sending notification (" + data.getMessage() + ") to token " + data.getToken());
 	}
@@ -438,20 +457,23 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		Boolean subscribing = null;
 		try {
 			String notifyOn = subscription.getNotifyOn();
-			if (StringUtil.isEmpty(notifyOn))
+			if (StringUtil.isEmpty(notifyOn)) {
 				notifyOn = MobileConstants.NOTIFY_ON_ALL;
+			}
 
 			User user = getUser(userId);
-			if (user == null)
+			if (user == null) {
 				return getResponse(Response.Status.BAD_REQUEST, "User can not be found by ID: " + userId);
+			}
 			Integer usrId = Integer.valueOf(user.getId());
 
 			boolean success = Boolean.FALSE;
 			subscribing = subscription.isSubscribe();
 			if (subscribing != null && subscribing) {
 				Locale locale = LocaleUtil.getLocale(subscription.getLocaleId());
-				if (locale == null)
+				if (locale == null) {
 					locale = Locale.ENGLISH;
+				}
 				success = getNotificationsCenter().doSubscribe(usrId, subscription.getToken(), locale, notifyOn, subscription.getDevice());
 				message = success ? "User " + user + " successfully subscribed to notifications for " + notifyOn :
 									"Error while subscribing user " + user + " to notifications for " + notifyOn;
@@ -484,8 +506,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			@QueryParam(MobileConstants.PARAM_TOKEN) String token,
 			@QueryParam(MobileConstants.PARAM_NOTIFY_ON) String notifyOn
 	) {
-		if (StringUtil.isEmpty(notifyOn))
+		if (StringUtil.isEmpty(notifyOn)) {
 			notifyOn = MobileConstants.NOTIFY_ON_ALL;
+		}
 
 		String message = "checking whether user is subscribed. User ID: " + userId + ", token: " + token + ", notify on: " + notifyOn;
 		if (StringUtil.isEmpty(userId)) {
@@ -501,8 +524,9 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 		try {
 			User user = getUser(userId);
-			if (user == null)
+			if (user == null) {
 				return getResponse(Response.Status.BAD_REQUEST, "User can not be found by ID: " + userId);
+			}
 			Integer usrId = Integer.valueOf(user.getId());
 
 			Subscription result = new Subscription(getNotificationsCenter().isSubscribed(usrId, token, notifyOn));

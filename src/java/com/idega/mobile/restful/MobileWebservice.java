@@ -1,5 +1,8 @@
 package com.idega.mobile.restful;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
 import com.idega.mobile.bean.LoginResult;
@@ -86,5 +89,6 @@ public interface MobileWebservice {
 	 * @return /pages/... or <code>null</code> on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
-	public Response getUserHomePage();
+	public Response getUserHomePage(HttpServletRequest request, HttpServletResponse response, ServletContext context);
+
 }

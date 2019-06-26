@@ -20,7 +20,7 @@ public interface MobileWebservice {
 	 * @param type - optional (bank ID, Facebook etc.)
 	 * @return Response to the request ({@link LoginResult}) about the attempt to login
 	 */
-	public Response doLogin(String username, String password, String type);
+	public Response doLogin(String username, String password, String type, HttpServletRequest request, HttpServletResponse response, ServletContext context);
 
 	/**
 	 * Logs in user via bank
@@ -29,7 +29,7 @@ public interface MobileWebservice {
 	 * @param country - ISO 3166-1 code
 	 * @return Response to the request ({@link LoginResult}) about the attempt to login
 	 */
-	public Response doBankLogin(String personalId, String country);
+	public Response doBankLogin(String personalId, String country, HttpServletRequest request, HttpServletResponse response, ServletContext context);
 
 	/**
 	 * Checks if user has logged in via BankID
@@ -47,7 +47,7 @@ public interface MobileWebservice {
 	 * @param username
 	 * @return
 	 */
-	public Response doLogout(String username);
+	public Response doLogout(String username, HttpServletRequest request, HttpServletResponse response, ServletContext context);
 
 	/**
 	 *  Pings HTTP session. GET: /mobile/ping?JSESSIONID=...

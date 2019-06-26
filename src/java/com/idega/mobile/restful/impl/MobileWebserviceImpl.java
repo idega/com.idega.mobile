@@ -85,7 +85,10 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     public Response doLogin(
     		@QueryParam("username") String username,
     		@QueryParam("password") String password,
-    		@QueryParam("type") String type
+    		@QueryParam("type") String type,
+    		@Context HttpServletRequest request,
+    		@Context HttpServletResponse response,
+    		@Context ServletContext context
     ) {
         String message = null;
     	if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
@@ -95,9 +98,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     	}
 
     	try {
-	    	IWContext iwc = CoreUtil.getIWContext();
-	    	HttpServletRequest request = iwc.getRequest();
-	    	HttpSession session = request.getSession();
+	    	IWContext iwc = new IWContext(request, response, context);
+	    	HttpSession session = iwc.getSession();
 
 	    	String userId = getUserIdByLogin(username);
 	    	if (StringUtil.isEmpty(userId)) {
@@ -234,7 +236,12 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@GET
     @Path(MobileConstants.URI_LOGOUT)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response doLogout(@QueryParam("username") String username) {
+    public Response doLogout(
+    		@QueryParam("username") String username,
+    		@Context HttpServletRequest request,
+    		@Context HttpServletResponse response,
+    		@Context ServletContext context
+    ) {
     	String message = null;
      	if (StringUtil.isEmpty(username)) {
      		message = "User name is not provided";
@@ -243,7 +250,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
      	}
 
      	try {
-     		IWContext iwc = CoreUtil.getIWContext();
+     		IWContext iwc = new IWContext(request, response, context);
      		LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(iwc.getRequest());
      		boolean success = login.logOutUser(iwc);
      		message = success ? "Success" : "Failed";
@@ -560,7 +567,10 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response doBankLogin(
 			@QueryParam(MobileConstants.PARAM_PERSONAL_ID) String personalId,
-			@QueryParam(MobileConstants.PARAM_COUNTRY) String country
+			@QueryParam(MobileConstants.PARAM_COUNTRY) String country,
+    		@Context HttpServletRequest request,
+    		@Context HttpServletResponse response,
+    		@Context ServletContext context
 	) {
     	if (StringUtil.isEmpty(personalId) || StringUtil.isEmpty(country)) {
     		getLogger().warning("Personal ID or country are not provided");
@@ -583,9 +593,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
     		BankLoginInfo info = bankIdLoginByCountry.doLogin(personalId);
     		if (info != null && info.isSuccess()) {
-    			IWContext iwc = CoreUtil.getIWContext();
-    			HttpServletRequest request = iwc.getRequest();
-    	    	HttpSession session = request.getSession();
+    			IWContext iwc = new IWContext(request, response, context);
+    	    	HttpSession session = iwc.getSession();
 
     			LoginBusinessBean login = LoginBusinessBean.getLoginBusinessBean(request);
     	    	String userId = user.getId();

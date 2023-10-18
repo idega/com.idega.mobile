@@ -44,6 +44,7 @@ import com.idega.core.localisation.business.ICLocaleBusiness;
 import com.idega.data.IDOLookup;
 import com.idega.event.IWHttpSessionsManager;
 import com.idega.idegaweb.IWMainApplicationSettings;
+import com.idega.jackrabbit.security.RepositoryAccessManager;
 import com.idega.mobile.MobileConstants;
 import com.idega.mobile.bean.LoginResult;
 import com.idega.mobile.bean.Notification;
@@ -77,6 +78,16 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 	@Autowired
 	private NotificationsCenter notificationsCenter;
+
+	@Autowired
+	private RepositoryAccessManager repositoryAccessManager;
+
+	private RepositoryAccessManager getRepositoryAccessManager() {
+		if (repositoryAccessManager == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return repositoryAccessManager;
+	}
 
     @Override
 	@GET
@@ -265,7 +276,12 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
     @GET
 	@Path(MobileConstants.URI_GET_REPOSITORY_ITEM)
 	@Produces("*/*")
-	public Response getFile(@QueryParam(MobileConstants.PARAM_URL) String url) {
+	public Response getFile(
+			@QueryParam(MobileConstants.PARAM_URL) String url,
+			@Context HttpServletRequest request,
+			@Context HttpServletResponse response,
+			@Context ServletContext context
+	) {
 		String errorMessage = null;
 		if (StringUtil.isEmpty(url)) {
 			errorMessage = "URL is not provided";
@@ -275,7 +291,8 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 
 		InputStream stream = null;
 		try {
-			stream = getStream(url);
+			IWContext iwc = new IWContext(request, response, context);
+			stream = getStream(iwc, url);
 		} catch (Exception e) {
 			errorMessage = "Error getting attachment at " + url;
 			getLogger().log(Level.WARNING, errorMessage, e);
@@ -292,14 +309,14 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 		return Response.ok(stream, mimeType).build();
 	}
 
-	private InputStream getStream(String path) throws Exception {
+	private InputStream getStream(IWContext iwc, String path) throws Exception {
 		if (StringUtil.isEmpty(path)) {
 			return null;
 		}
 
 		if (path.startsWith(CoreConstants.WEBDAV_SERVLET_URI) || path.startsWith(CoreConstants.PATH_FILES_ROOT)) {
 			try {
-				if (getRepositoryService().getExistence(path)) {
+				if (getRepositoryService().getExistence(path) && getRepositoryAccessManager().hasPermission(iwc, path)) {
 					return getRepositoryService().getInputStreamAsRoot(path);
 				}
 			} catch (Exception e) {
@@ -424,7 +441,7 @@ public class MobileWebserviceImpl extends DefaultRestfulService implements Mobil
 			getLogger().info("Using only the latest subscription: " + subscriptions);
 		}
 
-		Map<Locale, String> messages = new HashMap<Locale, String>();
+		Map<Locale, String> messages = new HashMap<>();
 		messages.put(ICLocaleBusiness.getLocaleFromLocaleString(data.getLocale()), data.getMessage());
 		Notification notification = new Notification(messages, subscriptions);
 		notification.setNotifyOn(data.getNotifyOn());
